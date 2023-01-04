@@ -8,6 +8,7 @@ const project = new CdklabsConstructLibrary({
   defaultReleaseBranch: 'main',
   name: 'cdk-stacksets',
   repositoryUrl: 'https://github.com/cdklabs/cdk-stacksets.git',
+  minNodeVersion: '14.18.0',
 
   deps: ['cdklabs-projen-project-types'],
   // description: undefined,  /* The description is just a string that helps people understand the purpose of the package. */
