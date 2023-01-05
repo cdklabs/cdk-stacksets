@@ -26,6 +26,10 @@
       "type": "build"
     },
     {
+      "name": "cdklabs-projen-project-types",
+      "type": "build"
+    },
+    {
       "name": "constructs",
       "version": "10.0.5",
       "type": "build"
@@ -94,6 +98,10 @@
     {
       "name": "ts-jest",
       "version": "^27",
+      "type": "build"
+    },
+    {
+      "name": "ts-node",
       "type": "build"
     },
     {
