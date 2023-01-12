@@ -14,6 +14,8 @@
     "docgen": "npx projen docgen",
     "eject": "npx projen eject",
     "eslint": "npx projen eslint",
+    "integ": "npx projen integ",
+    "integ:update": "npx projen integ:update",
     "package": "npx projen package",
     "package-all": "npx projen package-all",
     "package:dotnet": "npx projen package:dotnet",
@@ -39,11 +41,14 @@
     "organization": true
   },
   "devDependencies": {
+    "@aws-cdk/integ-runner": "2.60.0",
+    "@aws-cdk/integ-tests-alpha": "^2.45.0-alpha.0",
     "@types/jest": "^27",
     "@types/node": "^14",
     "@typescript-eslint/eslint-plugin": "^5",
     "@typescript-eslint/parser": "^5",
-    "aws-cdk-lib": "2.1.0",
+    "aws-cdk": "2.60.0",
+    "aws-cdk-lib": "2.45.0",
     "cdklabs-projen-project-types": "^0.0.5",
     "constructs": "10.0.5",
     "eslint": "^8",
@@ -65,7 +70,7 @@
     "typescript": "^4.9.4"
   },
   "peerDependencies": {
-    "aws-cdk-lib": "^2.1.0",
+    "aws-cdk-lib": "^2.45.0",
     "constructs": "^10.0.5"
   },
   "keywords": [
