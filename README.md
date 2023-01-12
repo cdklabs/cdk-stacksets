@@ -212,3 +212,102 @@ When you specify `serviceManaged` deployment type, automatic deployments are ena
 Automatic deployments allow the StackSet to be automatically deployed to or deleted from
 AWS accounts when they are added or removed from the specified organizational units.
 
+
+## Deploying StackSets using CDK Pipelines
+
+You can also deploy StackSets using [CDK Pipelines](https://docs.aws.amazon.com/cdk/api/v2/docs/aws-cdk-lib.pipelines-readme.html)
+
+Below is an example of a Pipeline that deploys from a central account. It also
+defines separate stages for each "environment" so that you can first test out
+the stackset in pre-prod environments.
+
+This would be an automated way of deploying the bootstrap stack described in
+[this blog
+post](https://aws.amazon.com/blogs/mt/bootstrapping-multiple-aws-accounts-for-aws-cdk-using-cloudformation-stacksets/).
+
+```ts
+export interface BootstrapStageProps extends StageProps {
+  readonly initialBootstrapTarget: StackSetTarget;
+  readonly stacksetName?: string;
+}
+
+export class BootstrapStage extends Stage {
+  constructor(scope: Construct, id: string, props: BootstrapStageProps) {
+    super(scope, id, props);
+
+    const stack = new Stack(this, 'BootstrapStackSet');
+
+    const bootstrap = new Bootstrap(stack, 'CDKToolkit');
+
+    const stackSet = new StackSet(stack, 'StackSet', {
+      template: StackSetTemplate.fromStackSetStack(bootstrap),
+      target: props.initialBootstrapTarget,
+      capabilities: [Capability.NAMED_IAM],
+      managedExecution: true,
+      stackSetName: props.stacksetName,
+      deploymentType: DeploymentType.serviceManaged({
+        delegatedAdmin: true,
+        autoDeployEnabled: true,
+        autoDeployRetainStacks: false,
+      }),
+      operationPreferences: {
+        regionConcurrencyType: RegionConcurrencyType.PARALLEL,
+        maxConcurrentPercentage: 100,
+        failureTolerancePercentage: 99,
+      },
+    });
+  }
+}
+
+
+const pipeline = new pipelines.CodePipeline(this, 'BootstrapPipeline', {
+  synth: new pipelines.ShellStep('Synth', {
+    commands: [
+      'yarn install --frozen-lockfile',
+      'npx cdk synth',
+    ],
+    input: pipelines.CodePipelineSource.connection('myorg/myrepo', 'main', {
+      connectionArn: 'arn:aws:codestar-connections:us-east-2:111111111111:connection/ca65d487-ca6e-41cc-aab2-645db37fdb2b',
+    }),
+  }),
+  selfMutation: true,
+});
+
+const regions = [
+  'us-east-1',
+  'us-east-2',
+  'us-west-2',
+  'eu-west-2',
+  'eu-west-1',
+  'ap-south-1',
+  'ap-southeast-1',
+];
+
+pipeline.addStage(
+  new BootstrapStage(app, 'DevBootstrap', {
+    env: {
+      region: 'us-east-1',
+      account: '111111111111',
+    },
+    stacksetName: 'CDKToolkit-dev',
+    initialBootstrapTarget: StackSetTarget.fromOrganizationalUnits({
+      regions,
+      organizationalUnits: ['ou-hrza-ar333427'],
+    }),
+  }),
+);
+
+pipeline.addStage(
+  new BootstrapStage(app, 'ProdBootstrap', {
+    env: {
+      region: 'us-east-1',
+      account: '111111111111',
+    },
+    stacksetName: 'CDKToolkit-prd',
+    initialBootstrapTarget: StackSetTarget.fromOrganizationalUnits({
+      regions,
+      organizationalUnits: ['ou-hrza-bb999427', 'ou-hraa-ar111127'],
+    }),
+  }),
+);
+```

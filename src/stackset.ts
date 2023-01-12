@@ -607,6 +607,7 @@ export class StackSet extends Resource implements IStackSet {
   private readonly stackInstances: cfn.CfnStackSet.StackInstancesProperty[] = [];
 
   private readonly _role?: iam.IRole;
+  private readonly permissionModel: PermissionModel;
   constructor(scope: Construct, id: string, props: StackSetProps) {
     super(scope, id, {
       physicalName: props.stackSetName ?? Lazy.string({ produce: () => Names.uniqueResourceName(this, {}) }),
@@ -631,7 +632,9 @@ export class StackSet extends Resource implements IStackSet {
       throw new Error('service managed stacksets do not current support the "AUTO_EXPAND" capability');
     }
 
-    this.addTarget(props.target, deploymentTypeConfig.permissionsModel);
+    this.permissionModel = deploymentTypeConfig.permissionsModel;
+
+    this.addTarget(props.target);
     new cfn.CfnStackSet(this, 'Resource', {
       autoDeployment: undefinedIfNoKeys({
         enabled: deploymentTypeConfig.autoDeployEnabled,
@@ -664,7 +667,7 @@ export class StackSet extends Resource implements IStackSet {
     return this._role;
   }
 
-  public addTarget(target: StackSetTarget, permissionModel: PermissionModel) {
+  public addTarget(target: StackSetTarget) {
     const targetConfig = target._bind(this);
 
     if (this._role && this._role instanceof iam.Role) {
@@ -687,7 +690,7 @@ export class StackSet extends Resource implements IStackSet {
       parameterOverrides: targetConfig.parameterOverrides,
       deploymentTargets: {
         accounts: targetConfig.accounts,
-        accountFilterType: permissionModel === PermissionModel.SERVICE_MANAGED
+        accountFilterType: this.permissionModel === PermissionModel.SERVICE_MANAGED
           ? targetConfig.accountFilterType
           : undefined, // field not supported for self managed
         organizationalUnitIds: targetConfig.organizationalUnits,
