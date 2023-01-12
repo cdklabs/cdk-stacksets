@@ -1,0 +1,296 @@
+{
+  "version": "tree-0.1",
+  "tree": {
+    "id": "App",
+    "path": "",
+    "children": {
+      "Tree": {
+        "id": "Tree",
+        "path": "Tree",
+        "constructInfo": {
+          "fqn": "constructs.Construct",
+          "version": "10.0.5"
+        }
+      },
+      "integ-stack-set-support": {
+        "id": "integ-stack-set-support",
+        "path": "integ-stack-set-support",
+        "children": {
+          "CfnExecutionRole": {
+            "id": "CfnExecutionRole",
+            "path": "integ-stack-set-support/CfnExecutionRole",
+            "children": {
+              "Resource": {
+                "id": "Resource",
+                "path": "integ-stack-set-support/CfnExecutionRole/Resource",
+                "attributes": {
+                  "aws:cdk:cloudformation:type": "AWS::IAM::Role",
+                  "aws:cdk:cloudformation:props": {
+                    "assumeRolePolicyDocument": {
+                      "Statement": [
+                        {
+                          "Action": "sts:AssumeRole",
+                          "Effect": "Allow",
+                          "Principal": {
+                            "AWS": "arn:aws:iam::12345678:root"
+                          }
+                        }
+                      ],
+                      "Version": "2012-10-17"
+                    },
+                    "managedPolicyArns": [
+                      {
+                        "Fn::Join": [
+                          "",
+                          [
+                            "arn:",
+                            {
+                              "Ref": "AWS::Partition"
+                            },
+                            ":iam::aws:policy/AdministratorAccess"
+                          ]
+                        ]
+                      }
+                    ],
+                    "roleName": "AWSCloudFormationStackSetExecutionRole-integ-test"
+                  }
+                },
+                "constructInfo": {
+                  "fqn": "aws-cdk-lib.aws_iam.CfnRole",
+                  "version": "2.45.0"
+                }
+              }
+            },
+            "constructInfo": {
+              "fqn": "aws-cdk-lib.aws_iam.Role",
+              "version": "2.45.0"
+            }
+          }
+        },
+        "constructInfo": {
+          "fqn": "aws-cdk-lib.Stack",
+          "version": "2.45.0"
+        }
+      },
+      "integ-stackset-test": {
+        "id": "integ-stackset-test",
+        "path": "integ-stackset-test",
+        "children": {
+          "AdminRole": {
+            "id": "AdminRole",
+            "path": "integ-stackset-test/AdminRole",
+            "children": {
+              "Resource": {
+                "id": "Resource",
+                "path": "integ-stackset-test/AdminRole/Resource",
+                "attributes": {
+                  "aws:cdk:cloudformation:type": "AWS::IAM::Role",
+                  "aws:cdk:cloudformation:props": {
+                    "assumeRolePolicyDocument": {
+                      "Statement": [
+                        {
+                          "Action": "sts:AssumeRole",
+                          "Effect": "Allow",
+                          "Principal": {
+                            "Service": "cloudformation.amazonaws.com"
+                          }
+                        }
+                      ],
+                      "Version": "2012-10-17"
+                    },
+                    "policies": [
+                      {
+                        "policyName": "AssumeExecutionRole",
+                        "policyDocument": {
+                          "Statement": [
+                            {
+                              "Action": "sts:AssumeRole",
+                              "Effect": "Allow",
+                              "Resource": "arn:aws:iam::*:role/AWSCloudFormationStackSetExecutionRole-integ-test"
+                            }
+                          ],
+                          "Version": "2012-10-17"
+                        }
+                      }
+                    ],
+                    "roleName": "AWSCloudFormationStackSetAdministrationRole-integ-test"
+                  }
+                },
+                "constructInfo": {
+                  "fqn": "aws-cdk-lib.aws_iam.CfnRole",
+                  "version": "2.45.0"
+                }
+              },
+              "DefaultPolicy": {
+                "id": "DefaultPolicy",
+                "path": "integ-stackset-test/AdminRole/DefaultPolicy",
+                "children": {
+                  "Resource": {
+                    "id": "Resource",
+                    "path": "integ-stackset-test/AdminRole/DefaultPolicy/Resource",
+                    "attributes": {
+                      "aws:cdk:cloudformation:type": "AWS::IAM::Policy",
+                      "aws:cdk:cloudformation:props": {
+                        "policyDocument": {
+                          "Statement": [
+                            {
+                              "Action": "sts:AssumeRole",
+                              "Effect": "Allow",
+                              "Resource": "arn:aws:iam::*:role/AWSCloudFormationStackSetExecutionRole-integ-test"
+                            }
+                          ],
+                          "Version": "2012-10-17"
+                        },
+                        "policyName": "AdminRoleDefaultPolicy1C2AB961",
+                        "roles": [
+                          {
+                            "Ref": "AdminRole38563C57"
+                          }
+                        ]
+                      }
+                    },
+                    "constructInfo": {
+                      "fqn": "aws-cdk-lib.aws_iam.CfnPolicy",
+                      "version": "2.45.0"
+                    }
+                  }
+                },
+                "constructInfo": {
+                  "fqn": "aws-cdk-lib.aws_iam.Policy",
+                  "version": "2.45.0"
+                }
+              }
+            },
+            "constructInfo": {
+              "fqn": "aws-cdk-lib.aws_iam.Role",
+              "version": "2.45.0"
+            }
+          },
+          "integ-stack-set": {
+            "id": "integ-stack-set",
+            "path": "integ-stackset-test/integ-stack-set",
+            "children": {
+              "IntegStackSetSNSTopic": {
+                "id": "IntegStackSetSNSTopic",
+                "path": "integ-stackset-test/integ-stack-set/IntegStackSetSNSTopic",
+                "children": {
+                  "Resource": {
+                    "id": "Resource",
+                    "path": "integ-stackset-test/integ-stack-set/IntegStackSetSNSTopic/Resource",
+                    "attributes": {
+                      "aws:cdk:cloudformation:type": "AWS::SNS::Topic",
+                      "aws:cdk:cloudformation:props": {}
+                    },
+                    "constructInfo": {
+                      "fqn": "aws-cdk-lib.aws_sns.CfnTopic",
+                      "version": "2.45.0"
+                    }
+                  }
+                },
+                "constructInfo": {
+                  "fqn": "aws-cdk-lib.aws_sns.Topic",
+                  "version": "2.45.0"
+                }
+              }
+            },
+            "constructInfo": {
+              "fqn": "aws-cdk-lib.Stack",
+              "version": "2.45.0"
+            }
+          },
+          "StackSet": {
+            "id": "StackSet",
+            "path": "integ-stackset-test/StackSet",
+            "children": {
+              "Resource": {
+                "id": "Resource",
+                "path": "integ-stackset-test/StackSet/Resource",
+                "attributes": {
+                  "aws:cdk:cloudformation:type": "AWS::CloudFormation::StackSet",
+                  "aws:cdk:cloudformation:props": {
+                    "permissionModel": "SELF_MANAGED",
+                    "stackSetName": "integstacksettestStackSet7A3EC558",
+                    "administrationRoleArn": {
+                      "Fn::GetAtt": [
+                        "AdminRole38563C57",
+                        "Arn"
+                      ]
+                    },
+                    "executionRoleName": "AWSCloudFormationStackSetExecutionRole-integ-test",
+                    "managedExecution": {
+                      "Active": true
+                    },
+                    "stackInstancesGroup": [
+                      {
+                        "regions": [
+                          "us-east-1"
+                        ],
+                        "deploymentTargets": {
+                          "accounts": [
+                            "12345678"
+                          ]
+                        }
+                      }
+                    ]
+                  }
+                },
+                "constructInfo": {
+                  "fqn": "aws-cdk-lib.aws_cloudformation.CfnStackSet",
+                  "version": "2.45.0"
+                }
+              }
+            },
+            "constructInfo": {
+              "fqn": "aws-cdk-lib.Resource",
+              "version": "2.45.0"
+            }
+          }
+        },
+        "constructInfo": {
+          "fqn": "aws-cdk-lib.Stack",
+          "version": "2.45.0"
+        }
+      },
+      "integ-test": {
+        "id": "integ-test",
+        "path": "integ-test",
+        "children": {
+          "DefaultTest": {
+            "id": "DefaultTest",
+            "path": "integ-test/DefaultTest",
+            "children": {
+              "Default": {
+                "id": "Default",
+                "path": "integ-test/DefaultTest/Default",
+                "constructInfo": {
+                  "fqn": "constructs.Construct",
+                  "version": "10.0.5"
+                }
+              },
+              "DeployAssert": {
+                "id": "DeployAssert",
+                "path": "integ-test/DefaultTest/DeployAssert",
+                "constructInfo": {
+                  "fqn": "aws-cdk-lib.Stack",
+                  "version": "2.45.0"
+                }
+              }
+            },
+            "constructInfo": {
+              "fqn": "@aws-cdk/integ-tests-alpha.IntegTestCase",
+              "version": "2.45.0-alpha.0"
+            }
+          }
+        },
+        "constructInfo": {
+          "fqn": "@aws-cdk/integ-tests-alpha.IntegTest",
+          "version": "2.45.0-alpha.0"
+        }
+      }
+    },
+    "constructInfo": {
+      "fqn": "aws-cdk-lib.App",
+      "version": "2.45.0"
+    }
+  }
+}

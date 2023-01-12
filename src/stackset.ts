@@ -631,7 +631,7 @@ export class StackSet extends Resource implements IStackSet {
       throw new Error('service managed stacksets do not current support the "AUTO_EXPAND" capability');
     }
 
-    this.addTarget(props.target);
+    this.addTarget(props.target, deploymentTypeConfig.permissionsModel);
     new cfn.CfnStackSet(this, 'Resource', {
       autoDeployment: undefinedIfNoKeys({
         enabled: deploymentTypeConfig.autoDeployEnabled,
@@ -664,7 +664,7 @@ export class StackSet extends Resource implements IStackSet {
     return this._role;
   }
 
-  public addTarget(target: StackSetTarget) {
+  public addTarget(target: StackSetTarget, permissionModel: PermissionModel) {
     const targetConfig = target._bind(this);
 
     if (this._role && this._role instanceof iam.Role) {
@@ -687,7 +687,9 @@ export class StackSet extends Resource implements IStackSet {
       parameterOverrides: targetConfig.parameterOverrides,
       deploymentTargets: {
         accounts: targetConfig.accounts,
-        accountFilterType: targetConfig.accountFilterType,
+        accountFilterType: permissionModel === PermissionModel.SERVICE_MANAGED
+          ? targetConfig.accountFilterType
+          : undefined, // field not supported for self managed
         organizationalUnitIds: targetConfig.organizationalUnits,
       },
     });

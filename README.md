@@ -115,15 +115,16 @@ that are part of any nested OUs.
 For example, given the following org hierarchy
 
 ```mermaid
-root-->ou-1;
-root-->ou-2;
-ou-1-->ou-3;
-ou-1-->ou-4;
-ou-3-->account-1;
-ou-3-->account-2;
-ou-4-->account-4;
-ou-2-->account-3;
-ou-2-->account-5;
+graph TD
+  root-->ou-1;
+  root-->ou-2;
+  ou-1-->ou-3;
+  ou-1-->ou-4;
+  ou-3-->account-1;
+  ou-3-->account-2;
+  ou-4-->account-4;
+  ou-2-->account-3;
+  ou-2-->account-5;
 ```
 
 You could deploy to all AWS accounts under OUs `ou-1`, `ou-3`, `ou-4` by specifying the following:

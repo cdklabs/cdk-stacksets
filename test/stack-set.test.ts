@@ -31,7 +31,6 @@ test('default', () => {
       Regions: ['us-east-1'],
       DeploymentTargets: {
         Accounts: ['11111111111'],
-        AccountFilterType: 'INTERSECTION',
       },
     }],
   });
@@ -63,7 +62,6 @@ test('self managed stackset creates adminRole by default', () => {
       Regions: ['us-east-1'],
       DeploymentTargets: {
         Accounts: ['11111111111'],
-        AccountFilterType: 'INTERSECTION',
       },
     }],
   });
@@ -106,7 +104,6 @@ test('self managed stackset with disabled regions', () => {
       Regions: ['us-east-1', 'af-south-1'],
       DeploymentTargets: {
         Accounts: ['11111111111'],
-        AccountFilterType: 'INTERSECTION',
       },
     }],
   });
