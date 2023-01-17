@@ -1,0 +1,34 @@
+// Fixture with packages imported, but nothing else
+import { Construct } from 'constructs';
+import {
+  App,
+  Stack,
+  Stage,
+  StageProps,
+  pipelines,
+  aws_iam as iam,
+  aws_cloudformation as cfn,
+} from 'aws-cdk-lib';
+import {
+  StackSet,
+  Capability,
+  StackSetTemplate,
+  StackSetStack,
+  DeploymentType,
+  RegionConcurrencyType,
+  StackSetTarget,
+} from './src';
+
+class Bootstrap extends StackSetStack {
+  constructor(scope: Construct, id: string) {
+    super(scope, id);
+  }
+}
+
+class Fixture extends Stack {
+  constructor(scope: Construct, id: string) {
+    super(scope, id);
+
+    /// here
+  }
+}

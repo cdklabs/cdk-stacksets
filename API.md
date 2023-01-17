@@ -1914,7 +1914,7 @@ You can optionally include/exclude individual AWS accounts.
 ```typescript
 StackSetTarget.fromOrganizationalUnits({
   regions: ['us-east-1', 'us-east-2'],
-  organizationUnits: ['ou-1111111', 'ou-2222222'],
+  organizationalUnits: ['ou-1111111', 'ou-2222222'],
 });
 ```
 
