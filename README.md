@@ -18,9 +18,7 @@
 This construct library allows you to define AWS CloudFormation StackSets.
 
 ```ts
-import * as cfn from '@aws-cdk/aws-cloudformation';
-
-const stack = new cdk.Stack();
+const stack = new Stack();
 const stackSetStack = new StackSetStack(stack, 'MyStackSet');
 
 new StackSet(stack, 'StackSet', {
@@ -33,6 +31,43 @@ new StackSet(stack, 'StackSet', {
   }),
   template: StackSetTemplate.fromStackSetStack(stackSetStack),
 });
+```
+
+## Installing
+
+### TypeScript/JavaScript
+
+```bash
+npm install cdk-stacksets
+```
+
+### Python
+
+```bash
+pip install cdk-stacksets
+```
+
+### Java
+
+```xml
+// add this to your pom.xml
+<dependency>
+    <groupId>io.github.cdklabs</groupId>
+    <artifactId>cdk-stacksets</artifactId>
+    <version>0.0.0</version> // replace with version
+</dependency>
+```
+
+### .NET
+
+```bash
+dotnet add package CdklabsCdkStacksets --version X.X.X
+```
+
+### Go
+
+```bash
+go get cdk-stacksets-go
 ```
 
 ## Creating a StackSet Stack
@@ -57,10 +92,12 @@ compared to Stacks.
 
 Once you create a `StackSetStack` you can create resources within the stack.
 ```ts
-const stack = new cdk.Stack();
+const stack = new Stack();
 const stackSetStack = new StackSetStack(stack, 'StackSet');
 
-new iam.Role(stackSetStack, 'MyRole');
+new iam.Role(stackSetStack, 'MyRole', {
+  assumedBy: new iam.ServicePrincipal('myservice.amazonaws.com'),
+});
 ```
 
 Or
@@ -69,7 +106,9 @@ class MyStackSet extends StackSetStack {
   constructor(scope: Construct, id: string) {
     super(scope, id);
 
-    new iam.Role(this, 'MyRole');
+    new iam.Role(this, 'MyRole', {
+      assumedBy: new iam.ServicePrincipal('myservice.amazonaws.com'),
+    });
   }
 }
 ```
@@ -89,7 +128,7 @@ Deploying to individual accounts requires you to specify the account ids. If you
 or remove the stackset from accounts, this has to be done by adding/removing the account id from the list.
 
 ```ts
-const stack = new cdk.Stack();
+const stack = new Stack();
 const stackSetStack = new StackSetStack(stack, 'MyStackSet');
 
 new StackSet(stack, 'StackSet', {
@@ -130,7 +169,7 @@ graph TD
 You could deploy to all AWS accounts under OUs `ou-1`, `ou-3`, `ou-4` by specifying the following:
 
 ```ts
-const stack = new cdk.Stack();
+const stack = new Stack();
 const stackSetStack = new StackSetStack(stack, 'MyStackSet');
 
 new StackSet(stack, 'StackSet', {
@@ -148,7 +187,7 @@ If there are specific AWS accounts that are part of the specified OU hierarchy t
 to exclude, this can be done by specifying `excludeAccounts`.
 
 ```ts
-const stack = new cdk.Stack();
+const stack = new Stack();
 const stackSetStack = new StackSetStack(stack, 'MyStackSet');
 
 new StackSet(stack, 'StackSet', {
@@ -167,7 +206,7 @@ Sometimes you might have individual accounts that you would like to deploy the S
 you do not want to include the entire OU. To do that you can specify `additionalAccounts`.
 
 ```ts
-const stack = new cdk.Stack();
+const stack = new Stack();
 const stackSetStack = new StackSetStack(stack, 'MyStackSet');
 
 new StackSet(stack, 'StackSet', {
@@ -195,7 +234,7 @@ When a StackSet is service managed, the permissions are managed by AWS Organizat
 account within the organization. In addition, the StackSet will be able to create _any_ type of resource.
 
 ```ts
-const stack = new cdk.Stack();
+const stack = new Stack();
 const stackSetStack = new StackSetStack(stack, 'MyStackSet');
 
 new StackSet(stack, 'StackSet', {
@@ -226,12 +265,13 @@ This would be an automated way of deploying the bootstrap stack described in
 post](https://aws.amazon.com/blogs/mt/bootstrapping-multiple-aws-accounts-for-aws-cdk-using-cloudformation-stacksets/).
 
 ```ts
-export interface BootstrapStageProps extends StageProps {
+declare const app: App;
+interface BootstrapStageProps extends StageProps {
   readonly initialBootstrapTarget: StackSetTarget;
   readonly stacksetName?: string;
 }
 
-export class BootstrapStage extends Stage {
+class BootstrapStage extends Stage {
   constructor(scope: Construct, id: string, props: BootstrapStageProps) {
     super(scope, id, props);
 

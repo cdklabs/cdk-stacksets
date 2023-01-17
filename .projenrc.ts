@@ -28,5 +28,12 @@ project.addTask('integ:update', {
   ],
 });
 
+const rosettaTask = project.addTask('rosetta:extract', {
+  description: 'Test rosetta extract',
+  exec: 'yarn --silent jsii-rosetta extract',
+});
+
 project.testTask.spawn(integSnapshotTask);
+project.postCompileTask.spawn(rosettaTask);
+project.addGitIgnore('.jsii.tabl.json');
 project.synth();
