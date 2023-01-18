@@ -50,7 +50,7 @@
     "@typescript-eslint/parser": "^5",
     "aws-cdk": "2.60.0",
     "aws-cdk-lib": "2.45.0",
-    "cdklabs-projen-project-types": "^0.0.5",
+    "cdklabs-projen-project-types": "^0.0.9",
     "constructs": "10.0.5",
     "eslint": "^8",
     "eslint-import-resolver-node": "^0.3.7",
@@ -144,7 +144,7 @@
         "packageId": "CdklabsCdkStacksets"
       },
       "go": {
-        "moduleName": "cdk-stacksets-go"
+        "moduleName": "github.com/cdklabs/cdk-stacksets-go"
       }
     },
     "tsc": {
