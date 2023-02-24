@@ -135,21 +135,23 @@
       "description": "Run integration snapshot tests",
       "steps": [
         {
-          "exec": "yarn integ-runner --language typescript"
+          "exec": "yarn integ-runner --language typescript",
+          "receiveArgs": true
         }
       ]
     },
     "integ:update": {
       "name": "integ:update",
       "description": "Run and update integration snapshot tests",
+      "steps": [
+        {
+          "exec": "yarn integ-runner --language typescript --update-on-failed",
+          "receiveArgs": true
+        }
+      ],
       "requiredEnv": [
         "INTEG_DEPLOYMENT_ACCOUNT",
         "INTEG_TARGET_ACCOUNT"
-      ],
-      "steps": [
-        {
-          "exec": "yarn integ-runner --language typescript --update-on-failed"
-        }
       ]
     },
     "package": {
@@ -276,7 +278,7 @@
       "description": "Test rosetta extract",
       "steps": [
         {
-          "exec": "yarn --silent jsii-rosetta extract"
+          "exec": "yarn --silent jsii-rosetta extract --strict"
         }
       ]
     },
