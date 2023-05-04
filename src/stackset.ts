@@ -616,7 +616,7 @@ export class StackSet extends Resource implements IStackSet {
     const deploymentTypeConfig = (props.deploymentType ?? DeploymentType.selfManaged())._bind(this);
     if (deploymentTypeConfig.permissionsModel === PermissionModel.SELF_MANAGED) {
       this._role = deploymentTypeConfig.adminRole ?? new iam.Role(scope, 'AdminRole', {
-        assumedBy: new iam.ServicePrincipal('cloudformation'),
+        assumedBy: new iam.ServicePrincipal('cloudformation.amazonaws.com'),
       });
 
       this._role.addToPrincipalPolicy(new iam.PolicyStatement({
