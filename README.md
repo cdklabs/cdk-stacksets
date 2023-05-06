@@ -266,15 +266,15 @@ stack in the same app and pass the object as a prop. Or, import an existing buck
 If creating in the parent or sibling stack you could create and export similar to this:
 
 ```ts
-this.bucket = new Bucket(this, "Assets", {
+const bucket = new s3.Bucket(this, "Assets", {
   bucketName: "cdkstacket-asset-bucket-xyz",
 });
 
-this.bucket.addToResourcePolicy(
-  new PolicyStatement({
+bucket.addToResourcePolicy(
+  new iam.PolicyStatement({
     actions: ["s3:Get*", "s3:List*"],
-    resources: [this.bucket.arnForObjects("*"), this.bucket.bucketArn],
-    principals: [new OrganizationPrincipal("o-xyz")],
+    resources: [bucket.arnForObjects("*"), bucket.bucketArn],
+    principals: [new iam.OrganizationPrincipal("o-xyz")],
   })
 );
 ```
@@ -282,8 +282,10 @@ this.bucket.addToResourcePolicy(
 Then pass as a prop to the StackSet stack:
 
 ```ts
-const stackSetStack = new StackSetStack(stack, 'MyStackSet' {
-  assetBucket: stack.bucket,
+declare const bucket: s3.Bucket;
+const stack = new Stack();
+const stackSetStack = new StackSetStack(stack, 'MyStackSet', {
+  assetBucket: bucket,
 });
 ```
 
