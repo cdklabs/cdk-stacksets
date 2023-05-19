@@ -36,6 +36,14 @@ export class StackSetStackSynthesizer extends StackSynthesizer {
   }
 }
 
+/**
+ * Properties for a StackSet Deployment. Subset of normal Stack properties.
+ */
+interface StackSetStackProps {
+  readonly analyticsReporting?: boolean;
+  readonly description?: string;
+  readonly tags?: { [key: string]: string };
+}
 
 /**
  * A StackSet stack, which is similar to a normal CloudFormation stack with
@@ -49,9 +57,10 @@ export class StackSetStack extends Stack {
   public readonly templateFile: string;
   private _templateUrl?: string;
   private _parentStack: Stack;
-  constructor(scope: Construct, id: string) {
+  constructor(scope: Construct, id: string, props: StackSetStackProps) {
     super(scope, id, {
       synthesizer: new StackSetStackSynthesizer(),
+      ...props,
     });
 
     this._parentStack = findParentStack(scope);
