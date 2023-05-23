@@ -36,17 +36,17 @@ export class StackSetStackSynthesizer extends StackSynthesizer {
     this.assetBucket = assetBucket;
   }
 
-  public addFileAsset(_asset: FileAssetSource): FileAssetLocation {
+  public addFileAsset(asset: FileAssetSource): FileAssetLocation {
     if (!this.assetBucket) {
       throw new Error('An Asset Bucket must be provided to use File Assets');
     }
 
-    if (!_asset.fileName) {
+    if (!asset.fileName) {
       throw new Error('Asset filename is undefined');
     }
 
     const outdir = App.of(this.boundStack)?.outdir ?? 'cdk.out';
-    const assetPath = `${outdir}/${_asset.fileName}`;
+    const assetPath = `${outdir}/${asset.fileName}`;
 
     if (!this.bucketDeployment) {
       const parentStack = (this.boundStack as StackSetStack)._getParentStack();
@@ -76,7 +76,7 @@ export class StackSetStackSynthesizer extends StackSynthesizer {
     const physicalName = this.physicalNameOfBucket(this.assetBucket);
 
     const bucketName = physicalName;
-    const assetFileBaseName = path.basename(_asset.fileName);
+    const assetFileBaseName = path.basename(asset.fileName);
     const s3Filename = assetFileBaseName.split('.')[1] + '.zip';
     const objectKey = `${s3Filename}`;
     const s3ObjectUrl = `s3://${bucketName}/${objectKey}`;

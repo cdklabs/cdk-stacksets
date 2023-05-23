@@ -2257,7 +2257,7 @@ mechanism.
 ##### `addFileAsset` <a name="addFileAsset" id="cdk-stacksets.StackSetStackSynthesizer.addFileAsset"></a>
 
 ```typescript
-public addFileAsset(_asset: FileAssetSource): FileAssetLocation
+public addFileAsset(asset: FileAssetSource): FileAssetLocation
 ```
 
 Register a File Asset  Returns the parameters that can be used to refer to the asset inside the template.
@@ -2268,7 +2268,7 @@ be by writing the instructions to the asset manifest (for use by the `cdk-assets
 by relying on the CLI to upload files (legacy behavior), or some other operator controlled
 mechanism.
 
-###### `_asset`<sup>Required</sup> <a name="_asset" id="cdk-stacksets.StackSetStackSynthesizer.addFileAsset.parameter._asset"></a>
+###### `asset`<sup>Required</sup> <a name="asset" id="cdk-stacksets.StackSetStackSynthesizer.addFileAsset.parameter.asset"></a>
 
 - *Type:* aws-cdk-lib.FileAssetSource
 
