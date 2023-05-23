@@ -40,8 +40,26 @@ export class StackSetStackSynthesizer extends StackSynthesizer {
  * Properties for a StackSet Deployment. Subset of normal Stack properties.
  */
 interface StackSetStackProps {
+  /**
+   * Include runtime versioning information in this Stack
+   *
+   * @default `analyticsReporting` setting of containing `App`, or value of
+   * 'aws:cdk:version-reporting' context key
+   */
   readonly analyticsReporting?: boolean;
+
+  /**
+   * A description of the stack.
+   *
+   * @default - No description.
+   */
   readonly description?: string;
+
+  /**
+   * Stack tags that will be applied to all the taggable resources and the stack itself.
+   *
+   * @default {}
+   */
   readonly tags?: { [key: string]: string };
 }
 
