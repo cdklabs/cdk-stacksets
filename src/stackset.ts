@@ -7,7 +7,7 @@ import {
   Resource,
 } from 'aws-cdk-lib';
 import { Construct } from 'constructs';
-import { StackSetStack } from './stackset-stack';
+import { StackSetStack, fileAssetResourceName } from './stackset-stack';
 
 /**
  * Represents a StackSet CloudFormation template
@@ -635,7 +635,7 @@ export class StackSet extends Resource implements IStackSet {
     this.permissionModel = deploymentTypeConfig.permissionsModel;
 
     this.addTarget(props.target);
-    new cfn.CfnStackSet(this, 'Resource', {
+    const stackSet = new cfn.CfnStackSet(this, 'Resource', {
       autoDeployment: undefinedIfNoKeys({
         enabled: deploymentTypeConfig.autoDeployEnabled,
         retainStacksOnAccountRemoval: deploymentTypeConfig.autoDeployRetainStacks,
@@ -658,6 +658,10 @@ export class StackSet extends Resource implements IStackSet {
       templateUrl: props.template.templateUrl,
       stackInstancesGroup: Lazy.any({ produce: () => { return this.stackInstances; } }),
     });
+
+    // the file asset bucket deployment needs to complete before the stackset can deploy
+    const fileAssetResource = scope.node.tryFindChild(fileAssetResourceName);
+    fileAssetResource && stackSet.node.addDependency(fileAssetResource);
   }
 
   public get role(): iam.IRole | undefined {

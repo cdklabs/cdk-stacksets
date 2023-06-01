@@ -88,7 +88,7 @@ compared to Stacks.
 - Must be environment agnostic
 
 *Limitations*
-- Do not support assets
+- Does not support Docker container assets
 
 Once you create a `StackSetStack` you can create resources within the stack.
 ```ts
@@ -251,6 +251,49 @@ When you specify `serviceManaged` deployment type, automatic deployments are ena
 Automatic deployments allow the StackSet to be automatically deployed to or deleted from
 AWS accounts when they are added or removed from the specified organizational units.
 
+### Using File Assets
+
+You can use the StackSet's parent stack to facilitate file assets. Behind the scenes,
+this is accomplished using the `BucketDeployment` construct from the
+`aws_s3_deployment` module. You need to provide a bucket outside the scope of the CDK
+managed asset buckets and ensure you have persmissions for the target accounts to pull
+the artifacts from the supplied bucket.
+
+As a basic example, if using a `serviceManaged` deployment, you just need to give read
+access to the Organization. You can create the asset bucket in the parent stack, or another
+stack in the same app and pass the object as a prop. Or, import an existing bucket as needed.
+
+If creating in the parent or sibling stack you could create and export similar to this:
+
+```ts
+const bucket = new s3.Bucket(this, "Assets", {
+  bucketName: "cdkstacket-asset-bucket-xyz",
+});
+
+bucket.addToResourcePolicy(
+  new iam.PolicyStatement({
+    actions: ["s3:Get*", "s3:List*"],
+    resources: [bucket.arnForObjects("*"), bucket.bucketArn],
+    principals: [new iam.OrganizationPrincipal("o-xyz")],
+  })
+);
+```
+
+Then pass as a prop to the StackSet stack:
+
+```ts
+declare const bucket: s3.Bucket;
+const stack = new Stack();
+const stackSetStack = new StackSetStack(stack, 'MyStackSet', {
+  assetBucket: bucket,
+});
+```
+
+Then call `new StackSet` as described in the sections above.
+
+You can use self-managed StackSet deployments with file assets too but will
+need to ensure all target accounts roles will have access to the central asset
+bucket you pass as the property.
 
 ## Deploying StackSets using CDK Pipelines
 
@@ -596,13 +639,14 @@ but rather only synthesized as a template and uploaded as an asset to S3.
 ```typescript
 import { StackSetStack } from 'cdk-stacksets'
 
-new StackSetStack(scope: Construct, id: string)
+new StackSetStack(scope: Construct, id: string, props?: StackSetStackProps)
 ```
 
 | **Name** | **Type** | **Description** |
 | --- | --- | --- |
 | <code><a href="#cdk-stacksets.StackSetStack.Initializer.parameter.scope">scope</a></code> | <code>constructs.Construct</code> | *No description.* |
 | <code><a href="#cdk-stacksets.StackSetStack.Initializer.parameter.id">id</a></code> | <code>string</code> | *No description.* |
+| <code><a href="#cdk-stacksets.StackSetStack.Initializer.parameter.props">props</a></code> | <code><a href="#cdk-stacksets.StackSetStackProps">StackSetStackProps</a></code> | *No description.* |
 
 ---
 
@@ -618,6 +662,12 @@ new StackSetStack(scope: Construct, id: string)
 
 ---
 
+##### `props`<sup>Optional</sup> <a name="props" id="cdk-stacksets.StackSetStack.Initializer.parameter.props"></a>
+
+- *Type:* <a href="#cdk-stacksets.StackSetStackProps">StackSetStackProps</a>
+
+---
+
 #### Methods <a name="Methods" id="Methods"></a>
 
 | **Name** | **Description** |
@@ -626,7 +676,8 @@ new StackSetStack(scope: Construct, id: string)
 | <code><a href="#cdk-stacksets.StackSetStack.addDependency">addDependency</a></code> | Add a dependency between this stack and another stack. |
 | <code><a href="#cdk-stacksets.StackSetStack.addMetadata">addMetadata</a></code> | Adds an arbitary key-value pair, with information you want to record about the stack. |
 | <code><a href="#cdk-stacksets.StackSetStack.addTransform">addTransform</a></code> | Add a Transform to this stack. A Transform is a macro that AWS CloudFormation uses to process your template. |
-| <code><a href="#cdk-stacksets.StackSetStack.exportValue">exportValue</a></code> | Create a CloudFormation Export for a value. |
+| <code><a href="#cdk-stacksets.StackSetStack.exportStringListValue">exportStringListValue</a></code> | Create a CloudFormation Export for a string list value. |
+| <code><a href="#cdk-stacksets.StackSetStack.exportValue">exportValue</a></code> | Create a CloudFormation Export for a string value. |
 | <code><a href="#cdk-stacksets.StackSetStack.formatArn">formatArn</a></code> | Creates an ARN from components. |
 | <code><a href="#cdk-stacksets.StackSetStack.getLogicalId">getLogicalId</a></code> | Allocates a stack-unique CloudFormation-compatible logical identity for a specific resource. |
 | <code><a href="#cdk-stacksets.StackSetStack.regionalFact">regionalFact</a></code> | Look up a fact value for the given fact for the region of this stack. |
@@ -635,6 +686,7 @@ new StackSetStack(scope: Construct, id: string)
 | <code><a href="#cdk-stacksets.StackSetStack.resolve">resolve</a></code> | Resolve a tokenized value in the context of the current stack. |
 | <code><a href="#cdk-stacksets.StackSetStack.splitArn">splitArn</a></code> | Splits the provided ARN into its components. |
 | <code><a href="#cdk-stacksets.StackSetStack.toJsonString">toJsonString</a></code> | Convert an object, potentially containing tokens, to a JSON string. |
+| <code><a href="#cdk-stacksets.StackSetStack.toYamlString">toYamlString</a></code> | Convert an object, potentially containing tokens, to a YAML string. |
 
 ---
 
@@ -722,13 +774,51 @@ The transform to add.
 
 ---
 
+##### `exportStringListValue` <a name="exportStringListValue" id="cdk-stacksets.StackSetStack.exportStringListValue"></a>
+
+```typescript
+public exportStringListValue(exportedValue: any, options?: ExportValueOptions): string[]
+```
+
+Create a CloudFormation Export for a string list value.
+
+Returns a string list representing the corresponding `Fn.importValue()`
+expression for this Export. The export expression is automatically wrapped with an
+`Fn::Join` and the import value with an `Fn::Split`, since CloudFormation can only
+export strings. You can control the name for the export by passing the `name` option.
+
+If you don't supply a value for `name`, the value you're exporting must be
+a Resource attribute (for example: `bucket.bucketName`) and it will be
+given the same name as the automatic cross-stack reference that would be created
+if you used the attribute in another Stack.
+
+One of the uses for this method is to *remove* the relationship between
+two Stacks established by automatic cross-stack references. It will
+temporarily ensure that the CloudFormation Export still exists while you
+remove the reference from the consuming stack. After that, you can remove
+the resource and the manual export.
+
+See `exportValue` for an example of this process.
+
+###### `exportedValue`<sup>Required</sup> <a name="exportedValue" id="cdk-stacksets.StackSetStack.exportStringListValue.parameter.exportedValue"></a>
+
+- *Type:* any
+
+---
+
+###### `options`<sup>Optional</sup> <a name="options" id="cdk-stacksets.StackSetStack.exportStringListValue.parameter.options"></a>
+
+- *Type:* aws-cdk-lib.ExportValueOptions
+
+---
+
 ##### `exportValue` <a name="exportValue" id="cdk-stacksets.StackSetStack.exportValue"></a>
 
 ```typescript
 public exportValue(exportedValue: any, options?: ExportValueOptions): string
 ```
 
-Create a CloudFormation Export for a value.
+Create a CloudFormation Export for a string value.
 
 Returns a string representing the corresponding `Fn.importValue()`
 expression for this Export. You can control the name for the export by
@@ -760,11 +850,11 @@ Instead, the process takes two deployments:
 ### Deployment 1: break the relationship
 
 - Make sure `consumerStack` no longer references `bucket.bucketName` (maybe the consumer
-   stack now uses its own bucket, or it writes to an AWS DynamoDB table, or maybe you just
-   remove the Lambda Function altogether).
+  stack now uses its own bucket, or it writes to an AWS DynamoDB table, or maybe you just
+  remove the Lambda Function altogether).
 - In the `ProducerStack` class, call `this.exportValue(this.bucket.bucketName)`. This
-   will make sure the CloudFormation Export continues to exist while the relationship
-   between the two stacks is being broken.
+  will make sure the CloudFormation Export continues to exist while the relationship
+  between the two stacks is being broken.
 - Deploy (this will effectively only change the `consumerStack`, but it's safe to deploy both).
 
 ### Deployment 2: remove the bucket resource
@@ -801,7 +891,7 @@ into the generated ARN at the location that component corresponds to.
 
 The ARN will be formatted as follows:
 
-   arn:{partition}:{service}:{region}:{account}:{resource}{sep}{resource-name}
+  arn:{partition}:{service}:{region}:{account}:{resource}{sep}{resource-name}
 
 The required ARN pieces that are omitted will be taken from the stack that
 the 'scope' is attached to. If all ARN pieces are supplied, the supplied scope
@@ -978,6 +1068,20 @@ Convert an object, potentially containing tokens, to a JSON string.
 
 ---
 
+##### `toYamlString` <a name="toYamlString" id="cdk-stacksets.StackSetStack.toYamlString"></a>
+
+```typescript
+public toYamlString(obj: any): string
+```
+
+Convert an object, potentially containing tokens, to a YAML string.
+
+###### `obj`<sup>Required</sup> <a name="obj" id="cdk-stacksets.StackSetStack.toYamlString.parameter.obj"></a>
+
+- *Type:* any
+
+---
+
 #### Static Functions <a name="Static Functions" id="Static Functions"></a>
 
 | **Name** | **Description** |
@@ -1063,7 +1167,7 @@ The construct to start the search from.
 | <code><a href="#cdk-stacksets.StackSetStack.property.stackName">stackName</a></code> | <code>string</code> | The concrete CloudFormation physical stack name. |
 | <code><a href="#cdk-stacksets.StackSetStack.property.synthesizer">synthesizer</a></code> | <code>aws-cdk-lib.IStackSynthesizer</code> | Synthesis method for this stack. |
 | <code><a href="#cdk-stacksets.StackSetStack.property.tags">tags</a></code> | <code>aws-cdk-lib.TagManager</code> | Tags to be applied to the stack. |
-| <code><a href="#cdk-stacksets.StackSetStack.property.templateFile">templateFile</a></code> | <code>string</code> | The name of the CloudFormation template file emitted to the output directory during synthesis. |
+| <code><a href="#cdk-stacksets.StackSetStack.property.templateFile">templateFile</a></code> | <code>string</code> | The name of the CloudFormation template file emitted to the output directory during synthesis. |
 | <code><a href="#cdk-stacksets.StackSetStack.property.templateOptions">templateOptions</a></code> | <code>aws-cdk-lib.ITemplateOptions</code> | Options for CloudFormation template (like version, transform, description). |
 | <code><a href="#cdk-stacksets.StackSetStack.property.urlSuffix">urlSuffix</a></code> | <code>string</code> | The Amazon domain suffix for the region in which this stack is defined. |
 | <code><a href="#cdk-stacksets.StackSetStack.property.nestedStackParent">nestedStackParent</a></code> | <code>aws-cdk-lib.Stack</code> | If this is a nested stack, returns it's parent stack. |
@@ -1097,14 +1201,14 @@ The AWS account into which this stack will be deployed.
 This value is resolved according to the following rules:
 
 1. The value provided to `env.account` when the stack is defined. This can
-    either be a concrete account (e.g. `585695031111`) or the
-    `Aws.ACCOUNT_ID` token.
+   either be a concrete account (e.g. `585695031111`) or the
+   `Aws.ACCOUNT_ID` token.
 3. `Aws.ACCOUNT_ID`, which represents the CloudFormation intrinsic reference
-    `{ "Ref": "AWS::AccountId" }` encoded as a string token.
+   `{ "Ref": "AWS::AccountId" }` encoded as a string token.
 
 Preferably, you should use the return value as an opaque string and not
 attempt to parse it to implement your logic. If you do, you must first
-check that it is a concerete value an not an unresolved token. If this
+check that it is a concrete value an not an unresolved token. If this
 value is an unresolved token (`Token.isUnresolved(stack.account)` returns
 `true`), this implies that the user wishes that this stack will synthesize
 into a **account-agnostic template**. In this case, your code should either
@@ -1245,14 +1349,14 @@ The AWS region into which this stack will be deployed (e.g. `us-west-2`).
 This value is resolved according to the following rules:
 
 1. The value provided to `env.region` when the stack is defined. This can
-    either be a concerete region (e.g. `us-west-2`) or the `Aws.REGION`
-    token.
+   either be a concrete region (e.g. `us-west-2`) or the `Aws.REGION`
+   token.
 3. `Aws.REGION`, which is represents the CloudFormation intrinsic reference
-    `{ "Ref": "AWS::Region" }` encoded as a string token.
+   `{ "Ref": "AWS::Region" }` encoded as a string token.
 
 Preferably, you should use the return value as an opaque string and not
 attempt to parse it to implement your logic. If you do, you must first
-check that it is a concerete value an not an unresolved token. If this
+check that it is a concrete value an not an unresolved token. If this
 value is an unresolved token (`Token.isUnresolved(stack.region)` returns
 `true`), this implies that the user wishes that this stack will synthesize
 into a **region-agnostic template**. In this case, your code should either
@@ -1334,7 +1438,7 @@ public readonly templateFile: string;
 
 - *Type:* string
 
-The name of the CloudFormation template file emitted to the output directory during synthesis.
+The name of the CloudFormation template file emitted to the output directory during synthesis.
 
 Example value: `MyStack.template.json`
 
@@ -1934,6 +2038,39 @@ The name of the stack set.
 
 ---
 
+### StackSetStackProps <a name="StackSetStackProps" id="cdk-stacksets.StackSetStackProps"></a>
+
+StackSet stack props.
+
+#### Initializer <a name="Initializer" id="cdk-stacksets.StackSetStackProps.Initializer"></a>
+
+```typescript
+import { StackSetStackProps } from 'cdk-stacksets'
+
+const stackSetStackProps: StackSetStackProps = { ... }
+```
+
+#### Properties <a name="Properties" id="Properties"></a>
+
+| **Name** | **Type** | **Description** |
+| --- | --- | --- |
+| <code><a href="#cdk-stacksets.StackSetStackProps.property.assetBucket">assetBucket</a></code> | <code>aws-cdk-lib.aws_s3.IBucket</code> | A Bucket can be passed to store assets, enabling StackSetStack Asset support. |
+
+---
+
+##### `assetBucket`<sup>Optional</sup> <a name="assetBucket" id="cdk-stacksets.StackSetStackProps.property.assetBucket"></a>
+
+```typescript
+public readonly assetBucket: IBucket;
+```
+
+- *Type:* aws-cdk-lib.aws_s3.IBucket
+- *Default:* No Bucket provided and Assets will not be supported.
+
+A Bucket can be passed to store assets, enabling StackSetStack Asset support.
+
+---
+
 ### TargetOptions <a name="TargetOptions" id="cdk-stacksets.TargetOptions"></a>
 
 Common options for deploying a StackSet to a target.
@@ -2071,11 +2208,18 @@ Interoperates with the StackSynthesizer of the parent stack.
 ```typescript
 import { StackSetStackSynthesizer } from 'cdk-stacksets'
 
-new StackSetStackSynthesizer()
+new StackSetStackSynthesizer(assetBucket?: IBucket)
 ```
 
 | **Name** | **Type** | **Description** |
 | --- | --- | --- |
+| <code><a href="#cdk-stacksets.StackSetStackSynthesizer.Initializer.parameter.assetBucket">assetBucket</a></code> | <code>aws-cdk-lib.aws_s3.IBucket</code> | *No description.* |
+
+---
+
+##### `assetBucket`<sup>Optional</sup> <a name="assetBucket" id="cdk-stacksets.StackSetStackSynthesizer.Initializer.parameter.assetBucket"></a>
+
+- *Type:* aws-cdk-lib.aws_s3.IBucket
 
 ---
 
@@ -2083,8 +2227,8 @@ new StackSetStackSynthesizer()
 
 | **Name** | **Description** |
 | --- | --- |
-| <code><a href="#cdk-stacksets.StackSetStackSynthesizer.addDockerImageAsset">addDockerImageAsset</a></code> | Register a Docker Image Asset. |
-| <code><a href="#cdk-stacksets.StackSetStackSynthesizer.addFileAsset">addFileAsset</a></code> | Register a File Asset. |
+| <code><a href="#cdk-stacksets.StackSetStackSynthesizer.addDockerImageAsset">addDockerImageAsset</a></code> | Register a Docker Image Asset  Returns the parameters that can be used to refer to the asset inside the template. |
+| <code><a href="#cdk-stacksets.StackSetStackSynthesizer.addFileAsset">addFileAsset</a></code> | Register a File Asset  Returns the parameters that can be used to refer to the asset inside the template. |
 | <code><a href="#cdk-stacksets.StackSetStackSynthesizer.bind">bind</a></code> | Bind to the stack this environment is going to be used on. |
 | <code><a href="#cdk-stacksets.StackSetStackSynthesizer.synthesize">synthesize</a></code> | Synthesize the associated stack to the session. |
 
@@ -2096,13 +2240,11 @@ new StackSetStackSynthesizer()
 public addDockerImageAsset(_asset: DockerImageAssetSource): DockerImageAssetLocation
 ```
 
-Register a Docker Image Asset.
-
-Returns the parameters that can be used to refer to the asset inside the template.
+Register a Docker Image Asset  Returns the parameters that can be used to refer to the asset inside the template.
 
 The synthesizer must rely on some out-of-band mechanism to make sure the given files
 are actually placed in the returned location before the deployment happens. This can
-be by writing the intructions to the asset manifest (for use by the `cdk-assets` tool),
+be by writing the instructions to the asset manifest (for use by the `cdk-assets` tool),
 by relying on the CLI to upload files (legacy behavior), or some other operator controlled
 mechanism.
 
@@ -2115,20 +2257,18 @@ mechanism.
 ##### `addFileAsset` <a name="addFileAsset" id="cdk-stacksets.StackSetStackSynthesizer.addFileAsset"></a>
 
 ```typescript
-public addFileAsset(_asset: FileAssetSource): FileAssetLocation
+public addFileAsset(asset: FileAssetSource): FileAssetLocation
 ```
 
-Register a File Asset.
-
-Returns the parameters that can be used to refer to the asset inside the template.
+Register a File Asset  Returns the parameters that can be used to refer to the asset inside the template.
 
 The synthesizer must rely on some out-of-band mechanism to make sure the given files
 are actually placed in the returned location before the deployment happens. This can
-be by writing the intructions to the asset manifest (for use by the `cdk-assets` tool),
+be by writing the instructions to the asset manifest (for use by the `cdk-assets` tool),
 by relying on the CLI to upload files (legacy behavior), or some other operator controlled
 mechanism.
 
-###### `_asset`<sup>Required</sup> <a name="_asset" id="cdk-stacksets.StackSetStackSynthesizer.addFileAsset.parameter._asset"></a>
+###### `asset`<sup>Required</sup> <a name="asset" id="cdk-stacksets.StackSetStackSynthesizer.addFileAsset.parameter.asset"></a>
 
 - *Type:* aws-cdk-lib.FileAssetSource
 
@@ -2165,6 +2305,25 @@ Synthesize the associated stack to the session.
 ---
 
 
+#### Properties <a name="Properties" id="Properties"></a>
+
+| **Name** | **Type** | **Description** |
+| --- | --- | --- |
+| <code><a href="#cdk-stacksets.StackSetStackSynthesizer.property.bootstrapQualifier">bootstrapQualifier</a></code> | <code>string</code> | The qualifier used to bootstrap this stack. |
+
+---
+
+##### `bootstrapQualifier`<sup>Optional</sup> <a name="bootstrapQualifier" id="cdk-stacksets.StackSetStackSynthesizer.property.bootstrapQualifier"></a>
+
+```typescript
+public readonly bootstrapQualifier: string;
+```
+
+- *Type:* string
+
+The qualifier used to bootstrap this stack.
+
+---
 
 
 ### StackSetTarget <a name="StackSetTarget" id="cdk-stacksets.StackSetTarget"></a>

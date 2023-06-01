@@ -88,7 +88,7 @@ compared to Stacks.
 - Must be environment agnostic
 
 *Limitations*
-- Do not support assets
+- Does not support Docker container assets
 
 Once you create a `StackSetStack` you can create resources within the stack.
 ```ts
@@ -251,6 +251,49 @@ When you specify `serviceManaged` deployment type, automatic deployments are ena
 Automatic deployments allow the StackSet to be automatically deployed to or deleted from
 AWS accounts when they are added or removed from the specified organizational units.
 
+### Using File Assets
+
+You can use the StackSet's parent stack to facilitate file assets. Behind the scenes,
+this is accomplished using the `BucketDeployment` construct from the
+`aws_s3_deployment` module. You need to provide a bucket outside the scope of the CDK
+managed asset buckets and ensure you have persmissions for the target accounts to pull
+the artifacts from the supplied bucket.
+
+As a basic example, if using a `serviceManaged` deployment, you just need to give read
+access to the Organization. You can create the asset bucket in the parent stack, or another
+stack in the same app and pass the object as a prop. Or, import an existing bucket as needed.
+
+If creating in the parent or sibling stack you could create and export similar to this:
+
+```ts
+const bucket = new s3.Bucket(this, "Assets", {
+  bucketName: "cdkstacket-asset-bucket-xyz",
+});
+
+bucket.addToResourcePolicy(
+  new iam.PolicyStatement({
+    actions: ["s3:Get*", "s3:List*"],
+    resources: [bucket.arnForObjects("*"), bucket.bucketArn],
+    principals: [new iam.OrganizationPrincipal("o-xyz")],
+  })
+);
+```
+
+Then pass as a prop to the StackSet stack:
+
+```ts
+declare const bucket: s3.Bucket;
+const stack = new Stack();
+const stackSetStack = new StackSetStack(stack, 'MyStackSet', {
+  assetBucket: bucket,
+});
+```
+
+Then call `new StackSet` as described in the sections above.
+
+You can use self-managed StackSet deployments with file assets too but will
+need to ensure all target accounts roles will have access to the central asset
+bucket you pass as the property.
 
 ## Deploying StackSets using CDK Pipelines
 

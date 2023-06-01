@@ -12,8 +12,15 @@ import {
   Names,
   Lazy,
   FileAssetPackaging,
+  App,
+  Resource,
+  Annotations,
 } from 'aws-cdk-lib';
+import { CfnBucket, IBucket } from 'aws-cdk-lib/aws-s3';
+import { BucketDeployment, Source } from 'aws-cdk-lib/aws-s3-deployment';
 import { Construct } from 'constructs';
+
+export const fileAssetResourceName = 'StackSetAssetsBucketDeployment';
 
 /**
  * Deployment environment for an AWS StackSet stack.
@@ -21,12 +28,78 @@ import { Construct } from 'constructs';
  * Interoperates with the StackSynthesizer of the parent stack.
  */
 export class StackSetStackSynthesizer extends StackSynthesizer {
-  public addFileAsset(_asset: FileAssetSource): FileAssetLocation {
-    throw new Error('StackSets cannot use Assets');
+  private readonly assetBucket?: IBucket;
+  private bucketDeployment?: BucketDeployment;
+
+  constructor(assetBucket?: IBucket) {
+    super();
+    this.assetBucket = assetBucket;
+  }
+
+  public addFileAsset(asset: FileAssetSource): FileAssetLocation {
+    if (!this.assetBucket) {
+      throw new Error('An Asset Bucket must be provided to use File Assets');
+    }
+
+    if (!asset.fileName) {
+      throw new Error('Asset filename is undefined');
+    }
+
+    const outdir = App.of(this.boundStack)?.outdir ?? 'cdk.out';
+    const assetPath = `${outdir}/${asset.fileName}`;
+
+    if (!this.bucketDeployment) {
+      const parentStack = (this.boundStack as StackSetStack)._getParentStack();
+
+      if (!Resource.isOwnedResource(this.assetBucket)) {
+        Annotations.of(parentStack).addWarning('[WARNING] Bucket Policy Permissions cannot be added to' +
+          ' referenced Bucket. Please make sure your bucket has the correct permissions');
+      }
+
+      const bucketDeployment = new BucketDeployment(
+        parentStack,
+        fileAssetResourceName,
+        {
+          sources: [Source.asset(assetPath)],
+          destinationBucket: this.assetBucket,
+          extract: false,
+          prune: false,
+        },
+      );
+
+      this.bucketDeployment = bucketDeployment;
+
+    } else {
+      this.bucketDeployment.addSource(Source.asset(assetPath));
+    }
+
+    const physicalName = this.physicalNameOfBucket(this.assetBucket);
+
+    const bucketName = physicalName;
+    const assetFileBaseName = path.basename(asset.fileName);
+    const s3Filename = assetFileBaseName.split('.')[1] + '.zip';
+    const objectKey = `${s3Filename}`;
+    const s3ObjectUrl = `s3://${bucketName}/${objectKey}`;
+    const httpUrl = `https://s3.${bucketName}/${objectKey}`;
+
+    return { bucketName, objectKey, httpUrl, s3ObjectUrl };
+  }
+
+  private physicalNameOfBucket(bucket: IBucket) {
+    let resolvedName;
+    if (Resource.isOwnedResource(bucket)) {
+      resolvedName = Stack.of(bucket).resolve((bucket.node.defaultChild as CfnBucket).bucketName);
+    } else {
+      resolvedName = bucket.bucketName;
+    }
+    if (resolvedName === undefined) {
+      throw new Error('A bucketName must be provided to use Assets');
+    }
+    return resolvedName;
   }
 
   public addDockerImageAsset(_asset: DockerImageAssetSource): DockerImageAssetLocation {
-    throw new Error('StackSets cannot use Assets');
+    throw new Error('StackSets cannot use Docker Image Assets');
   }
 
   public synthesize(session: ISynthesisSession): void {
@@ -34,6 +107,18 @@ export class StackSetStackSynthesizer extends StackSynthesizer {
     // It will be registered as an S3 asset of its parent instead.
     this.synthesizeTemplate(session);
   }
+}
+
+/**
+ * StackSet stack props.
+ */
+export interface StackSetStackProps {
+  /**
+   * A Bucket can be passed to store assets, enabling StackSetStack Asset support
+   * @default No Bucket provided and Assets will not be supported.
+   */
+  readonly assetBucket?: IBucket;
+
 }
 
 
@@ -49,9 +134,9 @@ export class StackSetStack extends Stack {
   public readonly templateFile: string;
   private _templateUrl?: string;
   private _parentStack: Stack;
-  constructor(scope: Construct, id: string) {
+  constructor(scope: Construct, id: string, props: StackSetStackProps = {}) {
     super(scope, id, {
-      synthesizer: new StackSetStackSynthesizer(),
+      synthesizer: new StackSetStackSynthesizer(props.assetBucket),
     });
 
     this._parentStack = findParentStack(scope);
@@ -67,6 +152,15 @@ export class StackSetStack extends Stack {
    */
   public _getTemplateUrl(): string {
     return Lazy.uncachedString({ produce: () => this._templateUrl });
+  }
+
+  /**
+   * Fetch the Parent Stack.
+   *
+   * @internal
+   */
+  public _getParentStack(): Stack {
+    return this._parentStack;
   }
 
   /**

@@ -1,3 +1,4 @@
+import * as path from 'path';
 import { IntegTest } from '@aws-cdk/integ-tests-alpha';
 import {
   App,
@@ -5,6 +6,8 @@ import {
   StackProps,
   aws_sns as sns,
   aws_iam as iam,
+  aws_lambda as lambda,
+  aws_s3 as s3,
 } from 'aws-cdk-lib';
 import { Construct } from 'constructs';
 import * as stacksets from '../src';
@@ -66,6 +69,21 @@ class MyStackSet extends stacksets.StackSetStack {
   }
 }
 
+/**
+ * Create a StackSetStack that has file assets
+ */
+class LambdaStackSet extends stacksets.StackSetStack {
+  constructor(scope: Construct, id: string, props?: stacksets.StackSetStackProps) {
+    super(scope, id, props);
+
+    new lambda.Function(this, 'Lambda', {
+      runtime: lambda.Runtime.NODEJS_16_X,
+      handler: 'index.handler',
+      code: lambda.Code.fromAsset(path.join(__dirname, 'lambda')),
+    });
+  }
+}
+
 interface TestCaseProps extends StackProps {
   executionRole: iam.IRole;
 }
@@ -109,6 +127,28 @@ class TestCase extends Stack {
   }
 }
 
+/**
+ * Create the stack which will create the StackSet resource
+ */
+class AssetTestCase extends Stack {
+  constructor(scope: Construct, id: string) {
+    super(scope, id);
+
+    const stackSetStack = new LambdaStackSet(this, 'asset-stack-set', {
+      assetBucket: s3.Bucket.fromBucketName(this, 'AssetBucket', 'integ-assets'),
+    });
+    new stacksets.StackSet(this, 'StackSet', {
+      target: stacksets.StackSetTarget.fromAccounts({
+        accounts: [targetAccount!],
+        regions: [targetRegion],
+      }),
+      template: stacksets.StackSetTemplate.fromStackSetStack(stackSetStack),
+      deploymentType: stacksets.DeploymentType.serviceManaged({ delegatedAdmin: false }),
+    });
+
+  }
+}
+
 const supportStack = new SupportStack(app, 'integ-stack-set-support', {
   env: {
     account: targetAccount,
@@ -126,7 +166,9 @@ const testCase = new TestCase(app, 'integ-stackset-test', {
 
 testCase.addDependency(supportStack);
 
+const assetTestCase = new AssetTestCase(app, 'integ-stackset-asset-test');
+
 new IntegTest(app, 'integ-test', {
-  testCases: [testCase],
+  testCases: [testCase, assetTestCase],
   enableLookups: true,
 });
