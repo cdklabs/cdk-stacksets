@@ -18,7 +18,7 @@ import {
   DeploymentType,
   RegionConcurrencyType,
   StackSetTarget,
-} from './src';
+} from 'cdk-stacksets';
 
 class Bootstrap extends StackSetStack {
   constructor(scope: Construct, id: string) {
