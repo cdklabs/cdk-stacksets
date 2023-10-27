@@ -49,7 +49,7 @@
     "@typescript-eslint/eslint-plugin": "^6",
     "@typescript-eslint/parser": "^6",
     "aws-cdk": "2.77.0",
-    "aws-cdk-lib": "2.77.0",
+    "aws-cdk-lib": "2.80.0",
     "cdklabs-projen-project-types": "^0.1.163",
     "constructs": "10.0.5",
     "eslint": "^8",
