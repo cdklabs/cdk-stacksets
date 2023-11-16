@@ -57,8 +57,6 @@
   "StackSet6E6355CF": {
    "Type": "AWS::CloudFormation::StackSet",
    "Properties": {
-    "PermissionModel": "SELF_MANAGED",
-    "StackSetName": "integstacksettestStackSet7A3EC558",
     "AdministrationRoleARN": {
      "Fn::GetAtt": [
       "AdminRole38563C57",
@@ -69,6 +67,7 @@
     "ManagedExecution": {
      "Active": true
     },
+    "PermissionModel": "SELF_MANAGED",
     "StackInstancesGroup": [
      {
       "DeploymentTargets": {
@@ -81,6 +80,7 @@
       ]
      }
     ],
+    "StackSetName": "integstacksettestStackSet7A3EC558",
     "TemplateURL": {
      "Fn::Sub": "https://s3.test-region.${AWS::URLSuffix}/cdk-hnb659fds-assets-12345678-test-region/fc39dcfb61ca7db050a8c6cf440dde97c2c051f0965e9094eaad4bf1157e63cf.json"
     }

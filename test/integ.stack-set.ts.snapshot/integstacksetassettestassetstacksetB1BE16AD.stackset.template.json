@@ -38,13 +38,13 @@
           "S3Bucket": "integ-assets",
           "S3Key": "e56263bd51a9cda3a5920a2b978d8827ae857776a6807cbe4ac9b2115dfed690.zip"
         },
+        "Handler": "index.handler",
         "Role": {
           "Fn::GetAtt": [
             "LambdaServiceRoleA8ED4D3B",
             "Arn"
           ]
         },
-        "Handler": "index.handler",
         "Runtime": "nodejs16.x"
       },
       "DependsOn": [

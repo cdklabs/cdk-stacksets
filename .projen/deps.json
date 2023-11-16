@@ -2,7 +2,7 @@
   "dependencies": [
     {
       "name": "@aws-cdk/integ-runner",
-      "version": "2.77.0",
+      "version": "2.108.0",
       "type": "build"
     },
     {
@@ -31,7 +31,7 @@
     },
     {
       "name": "aws-cdk",
-      "version": "2.77.0",
+      "version": "2.108.0",
       "type": "build"
     },
     {
@@ -83,11 +83,6 @@
       "type": "build"
     },
     {
-      "name": "npm-check-updates",
-      "version": "^16",
-      "type": "build"
-    },
-    {
       "name": "projen",
       "type": "build"
     },
@@ -131,7 +126,7 @@
     },
     {
       "name": "aws-cdk-lib",
-      "version": "^2.77.0",
+      "version": "^2.108.0",
       "type": "peer"
     },
     {

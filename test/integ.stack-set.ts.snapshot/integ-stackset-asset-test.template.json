@@ -7,7 +7,7 @@
      "S3Bucket": {
       "Fn::Sub": "cdk-hnb659fds-assets-${AWS::AccountId}-${AWS::Region}"
      },
-     "S3Key": "c33f77e71bef2fbd8299fa87f0d89b792b981d73e22dba92b2dd13caec415dfc.zip"
+     "S3Key": "3fb6287214999ddeafa7cd0e3e58bc5144c8678bb720f3b5e45e8fd32f333eb3.zip"
     },
     "Description": "/opt/awscli/aws"
    }
@@ -174,11 +174,10 @@
      },
      "S3Key": "9eb41a5505d37607ac419321497a4f8c21cf0ee1f9b4a6b29aa04301aea5c7fd.zip"
     },
-    "Role": {
-     "Fn::GetAtt": [
-      "CustomCDKBucketDeployment8693BB64968944B69AAFB0CC9EB8756CServiceRole89A01265",
-      "Arn"
-     ]
+    "Environment": {
+     "Variables": {
+      "AWS_CA_BUNDLE": "/etc/pki/ca-trust/extracted/pem/tls-ca-bundle.pem"
+     }
     },
     "Handler": "index.handler",
     "Layers": [
@@ -186,6 +185,12 @@
       "Ref": "StackSetAssetsBucketDeploymentAwsCliLayerAC4CF89A"
      }
     ],
+    "Role": {
+     "Fn::GetAtt": [
+      "CustomCDKBucketDeployment8693BB64968944B69AAFB0CC9EB8756CServiceRole89A01265",
+      "Arn"
+     ]
+    },
     "Runtime": "python3.9",
     "Timeout": 900
    },
@@ -197,8 +202,6 @@
   "StackSet6E6355CF": {
    "Type": "AWS::CloudFormation::StackSet",
    "Properties": {
-    "PermissionModel": "SERVICE_MANAGED",
-    "StackSetName": "integstacksetassettestStackSet091EC131",
     "AutoDeployment": {
      "Enabled": true,
      "RetainStacksOnAccountRemoval": true
@@ -207,6 +210,7 @@
     "ManagedExecution": {
      "Active": true
     },
+    "PermissionModel": "SERVICE_MANAGED",
     "StackInstancesGroup": [
      {
       "DeploymentTargets": {
@@ -220,8 +224,9 @@
       ]
      }
     ],
+    "StackSetName": "integstacksetassettestStackSet091EC131",
     "TemplateURL": {
-     "Fn::Sub": "https://s3.${AWS::Region}.${AWS::URLSuffix}/cdk-hnb659fds-assets-${AWS::AccountId}-${AWS::Region}/c8854aa3fd49ae7c6d2976969069363c4f13fdb51989ddc30dfedf2c06754fb8.json"
+     "Fn::Sub": "https://s3.${AWS::Region}.${AWS::URLSuffix}/cdk-hnb659fds-assets-${AWS::AccountId}-${AWS::Region}/3316336371755296c837ee9ccebfa13d33bb330deeed8025659b8f987db2bac9.json"
     }
    },
    "DependsOn": [
