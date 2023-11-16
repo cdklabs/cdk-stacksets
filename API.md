@@ -1167,7 +1167,7 @@ The construct to start the search from.
 | <code><a href="#cdk-stacksets.StackSetStack.property.stackName">stackName</a></code> | <code>string</code> | The concrete CloudFormation physical stack name. |
 | <code><a href="#cdk-stacksets.StackSetStack.property.synthesizer">synthesizer</a></code> | <code>aws-cdk-lib.IStackSynthesizer</code> | Synthesis method for this stack. |
 | <code><a href="#cdk-stacksets.StackSetStack.property.tags">tags</a></code> | <code>aws-cdk-lib.TagManager</code> | Tags to be applied to the stack. |
-| <code><a href="#cdk-stacksets.StackSetStack.property.templateFile">templateFile</a></code> | <code>string</code> | The name of the CloudFormation template file emitted to the output directory during synthesis. |
+| <code><a href="#cdk-stacksets.StackSetStack.property.templateFile">templateFile</a></code> | <code>string</code> | The name of the CloudFormation template file emitted to the output directory during synthesis. |
 | <code><a href="#cdk-stacksets.StackSetStack.property.templateOptions">templateOptions</a></code> | <code>aws-cdk-lib.ITemplateOptions</code> | Options for CloudFormation template (like version, transform, description). |
 | <code><a href="#cdk-stacksets.StackSetStack.property.urlSuffix">urlSuffix</a></code> | <code>string</code> | The Amazon domain suffix for the region in which this stack is defined. |
 | <code><a href="#cdk-stacksets.StackSetStack.property.nestedStackParent">nestedStackParent</a></code> | <code>aws-cdk-lib.Stack</code> | If this is a nested stack, returns it's parent stack. |
@@ -1438,7 +1438,7 @@ public readonly templateFile: string;
 
 - *Type:* string
 
-The name of the CloudFormation template file emitted to the output directory during synthesis.
+The name of the CloudFormation template file emitted to the output directory during synthesis.
 
 Example value: `MyStack.template.json`
 
@@ -1494,7 +1494,7 @@ If this is a nested stack, this represents its `AWS::CloudFormation::Stack` reso
 
 ---
 
-##### `terminationProtection`<sup>Optional</sup> <a name="terminationProtection" id="cdk-stacksets.StackSetStack.property.terminationProtection"></a>
+##### `terminationProtection`<sup>Required</sup> <a name="terminationProtection" id="cdk-stacksets.StackSetStack.property.terminationProtection"></a>
 
 ```typescript
 public readonly terminationProtection: boolean;
@@ -2227,8 +2227,8 @@ new StackSetStackSynthesizer(assetBucket?: IBucket)
 
 | **Name** | **Description** |
 | --- | --- |
-| <code><a href="#cdk-stacksets.StackSetStackSynthesizer.addDockerImageAsset">addDockerImageAsset</a></code> | Register a Docker Image Asset  Returns the parameters that can be used to refer to the asset inside the template. |
-| <code><a href="#cdk-stacksets.StackSetStackSynthesizer.addFileAsset">addFileAsset</a></code> | Register a File Asset  Returns the parameters that can be used to refer to the asset inside the template. |
+| <code><a href="#cdk-stacksets.StackSetStackSynthesizer.addDockerImageAsset">addDockerImageAsset</a></code> | Register a Docker Image Asset. |
+| <code><a href="#cdk-stacksets.StackSetStackSynthesizer.addFileAsset">addFileAsset</a></code> | Register a File Asset. |
 | <code><a href="#cdk-stacksets.StackSetStackSynthesizer.bind">bind</a></code> | Bind to the stack this environment is going to be used on. |
 | <code><a href="#cdk-stacksets.StackSetStackSynthesizer.synthesize">synthesize</a></code> | Synthesize the associated stack to the session. |
 
@@ -2240,7 +2240,9 @@ new StackSetStackSynthesizer(assetBucket?: IBucket)
 public addDockerImageAsset(_asset: DockerImageAssetSource): DockerImageAssetLocation
 ```
 
-Register a Docker Image Asset  Returns the parameters that can be used to refer to the asset inside the template.
+Register a Docker Image Asset.
+
+Returns the parameters that can be used to refer to the asset inside the template.
 
 The synthesizer must rely on some out-of-band mechanism to make sure the given files
 are actually placed in the returned location before the deployment happens. This can
@@ -2260,7 +2262,9 @@ mechanism.
 public addFileAsset(asset: FileAssetSource): FileAssetLocation
 ```
 
-Register a File Asset  Returns the parameters that can be used to refer to the asset inside the template.
+Register a File Asset.
+
+Returns the parameters that can be used to refer to the asset inside the template.
 
 The synthesizer must rely on some out-of-band mechanism to make sure the given files
 are actually placed in the returned location before the deployment happens. This can
@@ -2310,6 +2314,7 @@ Synthesize the associated stack to the session.
 | **Name** | **Type** | **Description** |
 | --- | --- | --- |
 | <code><a href="#cdk-stacksets.StackSetStackSynthesizer.property.bootstrapQualifier">bootstrapQualifier</a></code> | <code>string</code> | The qualifier used to bootstrap this stack. |
+| <code><a href="#cdk-stacksets.StackSetStackSynthesizer.property.lookupRole">lookupRole</a></code> | <code>string</code> | The role used to lookup for this stack. |
 
 ---
 
@@ -2322,6 +2327,18 @@ public readonly bootstrapQualifier: string;
 - *Type:* string
 
 The qualifier used to bootstrap this stack.
+
+---
+
+##### `lookupRole`<sup>Optional</sup> <a name="lookupRole" id="cdk-stacksets.StackSetStackSynthesizer.property.lookupRole"></a>
+
+```typescript
+public readonly lookupRole: string;
+```
+
+- *Type:* string
+
+The role used to lookup for this stack.
 
 ---
 

@@ -1,3 +1,5 @@
+/// !cdk-integ *
+
 import * as path from 'path';
 import { IntegTest } from '@aws-cdk/integ-tests-alpha';
 import {
