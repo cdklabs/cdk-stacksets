@@ -10,7 +10,6 @@ const project = new CdklabsConstructLibrary({
   defaultReleaseBranch: 'main',
   name: 'cdk-stacksets',
   repositoryUrl: 'https://github.com/cdklabs/cdk-stacksets.git',
-  minNodeVersion: '14.18.0',
   devDeps: ['cdklabs-projen-project-types', '@aws-cdk/integ-tests-alpha', `@aws-cdk/integ-runner@${MIN_CDK_VERSION}`, `aws-cdk@${MIN_CDK_VERSION}`],
   publishDryRun: false,
   private: false,

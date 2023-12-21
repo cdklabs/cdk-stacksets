@@ -1541,7 +1541,7 @@ public readonly regions: string[];
 
 A list of regions the Stack should be deployed to.
 
-If {@link StackSetProps.operationPreferences.regionOrder} is specified
+If {@link StackSetProps.operationPreferences.regionOrder } is specified
 then the StackSet will be deployed sequentially otherwise it will be
 deployed to all regions in parallel.
 
@@ -1554,7 +1554,7 @@ public readonly parameterOverrides: {[ key: string ]: string};
 ```
 
 - *Type:* {[ key: string ]: string}
-- *Default:* use parameter overrides specified in {@link StackSetProps.parameterOverrides}
+- *Default:* use parameter overrides specified in {@link StackSetProps.parameterOverrides }
 
 Parameter overrides that should be applied to only this target.
 
@@ -1689,7 +1689,7 @@ public readonly regions: string[];
 
 A list of regions the Stack should be deployed to.
 
-If {@link StackSetProps.operationPreferences.regionOrder} is specified
+If {@link StackSetProps.operationPreferences.regionOrder } is specified
 then the StackSet will be deployed sequentially otherwise it will be
 deployed to all regions in parallel.
 
@@ -1702,7 +1702,7 @@ public readonly parameterOverrides: {[ key: string ]: string};
 ```
 
 - *Type:* {[ key: string ]: string}
-- *Default:* use parameter overrides specified in {@link StackSetProps.parameterOverrides}
+- *Default:* use parameter overrides specified in {@link StackSetProps.parameterOverrides }
 
 Parameter overrides that should be applied to only this target.
 
@@ -2102,7 +2102,7 @@ public readonly regions: string[];
 
 A list of regions the Stack should be deployed to.
 
-If {@link StackSetProps.operationPreferences.regionOrder} is specified
+If {@link StackSetProps.operationPreferences.regionOrder } is specified
 then the StackSet will be deployed sequentially otherwise it will be
 deployed to all regions in parallel.
 
@@ -2115,7 +2115,7 @@ public readonly parameterOverrides: {[ key: string ]: string};
 ```
 
 - *Type:* {[ key: string ]: string}
-- *Default:* use parameter overrides specified in {@link StackSetProps.parameterOverrides}
+- *Default:* use parameter overrides specified in {@link StackSetProps.parameterOverrides }
 
 Parameter overrides that should be applied to only this target.
 
