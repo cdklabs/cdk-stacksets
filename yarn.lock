@@ -49,9 +49,9 @@
     fsevents "2.3.2"
 
 "@aws-cdk/integ-tests-alpha@latest":
-  version "2.115.0-alpha.0"
-  resolved "https://registry.yarnpkg.com/@aws-cdk/integ-tests-alpha/-/integ-tests-alpha-2.115.0-alpha.0.tgz#119ab7bb151aabdeab0afb7f4c6c6a74377571b1"
-  integrity sha512-ZdYGi6U5fOMWAJrK/50BCosGFg2tjYmoLo+gF2n4xkArQO6HVx+sE7p5RCdGl59tF/iw8H8ZT8JzleVJXy3KOQ==
+  version "2.116.1-alpha.0"
+  resolved "https://registry.yarnpkg.com/@aws-cdk/integ-tests-alpha/-/integ-tests-alpha-2.116.1-alpha.0.tgz#7e484aac00efb574869932755c855eb57203a4fb"
+  integrity sha512-mpBaTeBXTxoAU1CJBnceI78haI+7iQMiatIi/MN3YQirQGw5QoAKE6PN0CYbz//qJDhJ2NW6krDYf5hodwK7ew==
 
 "@aws-cdk/service-spec-types@^0.0.28":
   version "0.0.28"
@@ -5225,9 +5225,9 @@ typescript@^4.9.5:
   integrity sha512-1FXk9E2Hm+QzZQ7z+McJiHL4NW1F2EzMu9Nq9i3zAaGqibafqYwCVU6WyWAuyQRRzOlxou8xZSyXLEN8oKj24g==
 
 typescript@next:
-  version "5.4.0-dev.20231221"
-  resolved "https://registry.yarnpkg.com/typescript/-/typescript-5.4.0-dev.20231221.tgz#7464c612124597325426b44b6ce695476e45339d"
-  integrity sha512-vsu9WExlMAmSoA/elxcmBTyRDyf9REJCKV2DowCmSpp+oqv+oq0yku8490q1r2YBC7o9DP+u/q58J5sjqaAD+g==
+  version "5.4.0-dev.20231222"
+  resolved "https://registry.yarnpkg.com/typescript/-/typescript-5.4.0-dev.20231222.tgz#1262e74f7ae1066e6a323f9b5616dc85f8e0d924"
+  integrity sha512-SK3Hak67HL8l08jLRYOFF0cXL0ODM/tvA6w2+HOOYKijxGOmpc0xWz7zvOi6RLihS9BGgBG6Hk1zD/bN4qR4Qg==
 
 typescript@~3.9.10:
   version "3.9.10"
