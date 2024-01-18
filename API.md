@@ -255,9 +255,9 @@ AWS accounts when they are added or removed from the specified organizational un
 
 You can use the StackSet's parent stack to facilitate file assets. Behind the scenes,
 this is accomplished using the `BucketDeployment` construct from the
-`aws_s3_deployment` module. You need to provide a bucket outside the scope of the CDK
-managed asset buckets and ensure you have persmissions for the target accounts to pull
-the artifacts from the supplied bucket.
+`aws_s3_deployment` module. You need to provide a list of buckets outside the scope of the CDK
+managed asset buckets and ensure you have permissions for the target accounts to pull
+the artifacts from the supplied bucket(s).
 
 As a basic example, if using a `serviceManaged` deployment, you just need to give read
 access to the Organization. You can create the asset bucket in the parent stack, or another
@@ -267,7 +267,7 @@ If creating in the parent or sibling stack you could create and export similar t
 
 ```ts
 const bucket = new s3.Bucket(this, "Assets", {
-  bucketName: "cdkstacket-asset-bucket-xyz",
+  bucketName: "prefix-us-east-1",
 });
 
 bucket.addToResourcePolicy(
@@ -285,11 +285,16 @@ Then pass as a prop to the StackSet stack:
 declare const bucket: s3.Bucket;
 const stack = new Stack();
 const stackSetStack = new StackSetStack(stack, 'MyStackSet', {
-  assetBucket: bucket,
+  assetBuckets: [bucket],
 });
 ```
 
-Then call `new StackSet` as described in the sections above.
+To faciliate multi region deployments, there is an assetPrefix property. This
+gets added to the region the Stack Set is deployed to. The stack synthesis for
+the Stack Set would look for a bucket named `prefix-{Region}` in the example
+above. `{Region}` is whatever region you are deploying the Stack Set to as
+defined in your target property of the StackSet. You will need to ensure the
+bucket name is correct based on what was previously created and then passed in.
 
 You can use self-managed StackSet deployments with file assets too but will
 need to ensure all target accounts roles will have access to the central asset
@@ -2054,17 +2059,28 @@ const stackSetStackProps: StackSetStackProps = { ... }
 
 | **Name** | **Type** | **Description** |
 | --- | --- | --- |
-| <code><a href="#cdk-stacksets.StackSetStackProps.property.assetBucket">assetBucket</a></code> | <code>aws-cdk-lib.aws_s3.IBucket</code> | A Bucket can be passed to store assets, enabling StackSetStack Asset support. |
+| <code><a href="#cdk-stacksets.StackSetStackProps.property.assetBucketPrefix">assetBucketPrefix</a></code> | <code>string</code> | *No description.* |
+| <code><a href="#cdk-stacksets.StackSetStackProps.property.assetBuckets">assetBuckets</a></code> | <code>aws-cdk-lib.aws_s3.IBucket[]</code> | A Bucket can be passed to store assets, enabling StackSetStack Asset support. |
 
 ---
 
-##### `assetBucket`<sup>Optional</sup> <a name="assetBucket" id="cdk-stacksets.StackSetStackProps.property.assetBucket"></a>
+##### `assetBucketPrefix`<sup>Optional</sup> <a name="assetBucketPrefix" id="cdk-stacksets.StackSetStackProps.property.assetBucketPrefix"></a>
 
 ```typescript
-public readonly assetBucket: IBucket;
+public readonly assetBucketPrefix: string;
 ```
 
-- *Type:* aws-cdk-lib.aws_s3.IBucket
+- *Type:* string
+
+---
+
+##### `assetBuckets`<sup>Optional</sup> <a name="assetBuckets" id="cdk-stacksets.StackSetStackProps.property.assetBuckets"></a>
+
+```typescript
+public readonly assetBuckets: IBucket[];
+```
+
+- *Type:* aws-cdk-lib.aws_s3.IBucket[]
 - *Default:* No Bucket provided and Assets will not be supported.
 
 A Bucket can be passed to store assets, enabling StackSetStack Asset support.
@@ -2208,18 +2224,25 @@ Interoperates with the StackSynthesizer of the parent stack.
 ```typescript
 import { StackSetStackSynthesizer } from 'cdk-stacksets'
 
-new StackSetStackSynthesizer(assetBucket?: IBucket)
+new StackSetStackSynthesizer(assetBuckets?: IBucket[], assetBucketPrefix?: string)
 ```
 
 | **Name** | **Type** | **Description** |
 | --- | --- | --- |
-| <code><a href="#cdk-stacksets.StackSetStackSynthesizer.Initializer.parameter.assetBucket">assetBucket</a></code> | <code>aws-cdk-lib.aws_s3.IBucket</code> | *No description.* |
+| <code><a href="#cdk-stacksets.StackSetStackSynthesizer.Initializer.parameter.assetBuckets">assetBuckets</a></code> | <code>aws-cdk-lib.aws_s3.IBucket[]</code> | *No description.* |
+| <code><a href="#cdk-stacksets.StackSetStackSynthesizer.Initializer.parameter.assetBucketPrefix">assetBucketPrefix</a></code> | <code>string</code> | *No description.* |
 
 ---
 
-##### `assetBucket`<sup>Optional</sup> <a name="assetBucket" id="cdk-stacksets.StackSetStackSynthesizer.Initializer.parameter.assetBucket"></a>
+##### `assetBuckets`<sup>Optional</sup> <a name="assetBuckets" id="cdk-stacksets.StackSetStackSynthesizer.Initializer.parameter.assetBuckets"></a>
 
-- *Type:* aws-cdk-lib.aws_s3.IBucket
+- *Type:* aws-cdk-lib.aws_s3.IBucket[]
+
+---
+
+##### `assetBucketPrefix`<sup>Optional</sup> <a name="assetBucketPrefix" id="cdk-stacksets.StackSetStackSynthesizer.Initializer.parameter.assetBucketPrefix"></a>
+
+- *Type:* string
 
 ---
 

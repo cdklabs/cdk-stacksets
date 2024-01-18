@@ -164,13 +164,13 @@
         "/integ-stackset-asset-test/StackSetAssetsBucketDeployment/AwsCliLayer/Resource": [
           {
             "type": "aws:cdk:logicalId",
-            "data": "StackSetAssetsBucketDeploymentAwsCliLayerAC4CF89A"
+            "data": "integstacksetassettestassetstacksetB1BE16ADAssetBucketDeployment0AwsCliLayerC5715512"
           }
         ],
         "/integ-stackset-asset-test/StackSetAssetsBucketDeployment/CustomResource/Default": [
           {
             "type": "aws:cdk:logicalId",
-            "data": "StackSetAssetsBucketDeploymentCustomResource644D06A6"
+            "data": "integstacksetassettestassetstacksetB1BE16ADAssetBucketDeployment0CustomResource95864C0F"
           }
         ],
         "/integ-stackset-asset-test/Custom::CDKBucketDeployment8693BB64968944B69AAFB0CC9EB8756C/ServiceRole/Resource": [

@@ -1,12 +1,18 @@
 {
   "dependencies": [
     {
+      "name": "@aws-cdk/cloud-assembly-schema",
+      "version": "2.113.0",
+      "type": "build"
+    },
+    {
       "name": "@aws-cdk/integ-runner",
-      "version": "2.108.0",
+      "version": "2.113.0",
       "type": "build"
     },
     {
       "name": "@aws-cdk/integ-tests-alpha",
+      "version": "2.113.0-alpha.0",
       "type": "build"
     },
     {
@@ -30,7 +36,7 @@
     },
     {
       "name": "aws-cdk",
-      "version": "2.108.0",
+      "version": "2.113.0",
       "type": "build"
     },
     {
@@ -113,7 +119,7 @@
     },
     {
       "name": "aws-cdk-lib",
-      "version": "^2.108.0",
+      "version": "^2.113.0",
       "type": "peer"
     },
     {

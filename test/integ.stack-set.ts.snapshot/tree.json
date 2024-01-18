@@ -434,7 +434,7 @@
               "version": "2.108.0"
             }
           },
-          "StackSetAssetsBucketDeployment": {
+          "StackSetAssetsBucketDeployment0": {
             "id": "StackSetAssetsBucketDeployment",
             "path": "integ-stackset-asset-test/StackSetAssetsBucketDeployment",
             "children": {
@@ -775,7 +775,7 @@
                     "handler": "index.handler",
                     "layers": [
                       {
-                        "Ref": "StackSetAssetsBucketDeploymentAwsCliLayerAC4CF89A"
+                        "Ref": "integstacksetassettestassetstacksetB1BE16ADAssetBucketDeployment0AwsCliLayerC5715512"
                       }
                     ],
                     "role": {
@@ -833,7 +833,7 @@
                     ],
                     "stackSetName": "integstacksetassettestStackSet091EC131",
                     "templateUrl": {
-                      "Fn::Sub": "https://s3.${AWS::Region}.${AWS::URLSuffix}/cdk-hnb659fds-assets-${AWS::AccountId}-${AWS::Region}/3316336371755296c837ee9ccebfa13d33bb330deeed8025659b8f987db2bac9.json"
+                      "Fn::Sub": "https://s3.${AWS::Region}.${AWS::URLSuffix}/cdk-hnb659fds-assets-${AWS::AccountId}-${AWS::Region}/8a79245976356195e252a35c4adeb67d13403b4aa4797878ffeb1cbdbf6b1e10.json"
                     }
                   }
                 },

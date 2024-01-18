@@ -7,7 +7,7 @@ import {
   Resource,
 } from 'aws-cdk-lib';
 import { Construct } from 'constructs';
-import { StackSetStack, fileAssetResourceName } from './stackset-stack';
+import { StackSetStack, fileAssetResourceNames } from './stackset-stack';
 
 /**
  * Represents a StackSet CloudFormation template
@@ -470,7 +470,6 @@ export interface StackSetProps {
    */
   readonly managedExecution?: boolean;
 
-
   /**
    *
    */
@@ -660,8 +659,10 @@ export class StackSet extends Resource implements IStackSet {
     });
 
     // the file asset bucket deployment needs to complete before the stackset can deploy
-    const fileAssetResource = scope.node.tryFindChild(fileAssetResourceName);
-    fileAssetResource && stackSet.node.addDependency(fileAssetResource);
+    for (const fileAssetResourceName of fileAssetResourceNames) {
+      const fileAssetResource = scope.node.tryFindChild(fileAssetResourceName);
+      fileAssetResource && stackSet.node.addDependency(fileAssetResource);
+    }
   }
 
   public get role(): iam.IRole | undefined {
