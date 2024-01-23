@@ -38,14 +38,6 @@
     "@aws-cdk/service-spec-types" "^0.0.36"
     "@cdklabs/tskb" "^0.0.3"
 
-"@aws-cdk/cloud-assembly-schema@2.113.0":
-  version "2.113.0"
-  resolved "https://registry.yarnpkg.com/@aws-cdk/cloud-assembly-schema/-/cloud-assembly-schema-2.113.0.tgz#19749519aa1324c1e5e4a3b6b8a47173b373eb8d"
-  integrity sha512-mhyRJT+hYg2VQxC1jiNh/l0pYrkfTiux1y3jswHkt6oW1Eyu34lsDO1LTK931Z6JjRuK1PLIpz5COgshAwrqfA==
-  dependencies:
-    jsonschema "^1.4.1"
-    semver "^7.5.4"
-
 "@aws-cdk/integ-runner@latest":
   version "2.116.1-alpha.0"
   resolved "https://registry.yarnpkg.com/@aws-cdk/integ-runner/-/integ-runner-2.116.1-alpha.0.tgz#ea9a612d0db858eacd0a3c4df9fa47edf8d7f572"
@@ -1232,10 +1224,10 @@ available-typed-arrays@^1.0.5:
   resolved "https://registry.yarnpkg.com/available-typed-arrays/-/available-typed-arrays-1.0.5.tgz#92f95616501069d07d10edb2fc37d3e1c65123b7"
   integrity sha512-DMD0KiN46eipeziST1LPP/STfDU0sufISXmjSgvVsoU2tqxctQeASejWcfNtxYKqETM1UxQ8sp2OrSBWpHY6sw==
 
-aws-cdk-lib@2.113.0:
-  version "2.113.0"
-  resolved "https://registry.yarnpkg.com/aws-cdk-lib/-/aws-cdk-lib-2.113.0.tgz#dacc835f11c6df14bbe04746085f070bdde99eac"
-  integrity sha512-wZYooUd8nb3ADFtg1dSnsRt1MJmeqEK8cKOnPfCGCfm852YnVdb0qIEclURCQ4ygDJSuqiw9CE+xWVeTQTG6Dw==
+aws-cdk-lib@2.108.0:
+  version "2.108.0"
+  resolved "https://registry.yarnpkg.com/aws-cdk-lib/-/aws-cdk-lib-2.108.0.tgz#8a7b289451cb8578dd191bc3028e771a555e34d2"
+  integrity sha512-6Qa/ovAEmGuBTQiKvXwXWk9nUn/cgLCsvObLCVaV8JzeEBDKfhedGeCrk4l+Pe5JCJrKwdv2/LzT/cKN1RyZ2g==
   dependencies:
     "@aws-cdk/asset-awscli-v1" "^2.2.201"
     "@aws-cdk/asset-kubectl-v20" "^2.1.2"
@@ -1243,7 +1235,7 @@ aws-cdk-lib@2.113.0:
     "@balena/dockerignore" "^1.0.2"
     case "1.6.3"
     fs-extra "^11.1.1"
-    ignore "^5.3.0"
+    ignore "^5.2.4"
     jsonschema "^1.4.1"
     minimatch "^3.1.2"
     punycode "^2.3.1"
@@ -1251,10 +1243,10 @@ aws-cdk-lib@2.113.0:
     table "^6.8.1"
     yaml "1.10.2"
 
-aws-cdk@2.113.0:
-  version "2.113.0"
-  resolved "https://registry.yarnpkg.com/aws-cdk/-/aws-cdk-2.113.0.tgz#13a74953cc5ea42e1c7aa317a5b70428b71816ab"
-  integrity sha512-XEM8DSZpcMO1yXqozub8LiXK+3ihEqoWdeFDaIoMq0YmLspo9iAE3FPcKcIfv+ihRIEyvJLekGlxJPkx3+NOGA==
+aws-cdk@2.108.0:
+  version "2.108.0"
+  resolved "https://registry.yarnpkg.com/aws-cdk/-/aws-cdk-2.108.0.tgz#ffd54892fe76c650d5ea90ef097f23f1867b7d32"
+  integrity sha512-qpBAtEGudaO7EVuGfur+lIpoh+JeWVgnvQ7z8MBtr7LEzolQf/9Cebovx/+KCUI3VnK/jsL/+3ixYwraaT/y2A==
   optionalDependencies:
     fsevents "2.3.2"
 
@@ -2789,7 +2781,7 @@ iconv-lite@0.4.24:
   dependencies:
     safer-buffer ">= 2.1.2 < 3"
 
-ignore@^5.2.0, ignore@^5.2.4, ignore@^5.3.0:
+ignore@^5.2.0, ignore@^5.2.4:
   version "5.3.0"
   resolved "https://registry.yarnpkg.com/ignore/-/ignore-5.3.0.tgz#67418ae40d34d6999c95ff56016759c718c82f78"
   integrity sha512-g7dmpshy+gD7mh88OC9NwSGTKoc3kyLAZQRU1mt53Aw/vnvfXnbC+F/7F7QoYVKbV+KNvJx8wArewKy1vXMtlg==
