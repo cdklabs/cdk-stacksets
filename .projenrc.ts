@@ -1,7 +1,7 @@
 import { CdklabsConstructLibrary } from 'cdklabs-projen-project-types';
 import { JsonPatch } from 'projen';
 
-const MIN_CDK_VERSION = '2.113.0';
+const MIN_CDK_VERSION = '2.108.0';
 const project = new CdklabsConstructLibrary({
   projenrcTs: true,
   author: 'AWS',
@@ -10,7 +10,7 @@ const project = new CdklabsConstructLibrary({
   defaultReleaseBranch: 'main',
   name: 'cdk-stacksets',
   repositoryUrl: 'https://github.com/cdklabs/cdk-stacksets.git',
-  devDeps: ['cdklabs-projen-project-types', `@aws-cdk/cloud-assembly-schema@${MIN_CDK_VERSION}`, `@aws-cdk/integ-tests-alpha@${MIN_CDK_VERSION}-alpha.0`, `@aws-cdk/integ-runner@${MIN_CDK_VERSION}`, `aws-cdk@${MIN_CDK_VERSION}`],
+  devDeps: ['cdklabs-projen-project-types', '@aws-cdk/integ-tests-alpha', `@aws-cdk/integ-runner@${MIN_CDK_VERSION}`, `aws-cdk@${MIN_CDK_VERSION}`],
   publishDryRun: false,
   private: false,
 });

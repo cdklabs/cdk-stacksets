@@ -286,10 +286,11 @@ declare const bucket: s3.Bucket;
 const stack = new Stack();
 const stackSetStack = new StackSetStack(stack, 'MyStackSet', {
   assetBuckets: [bucket],
+  assetBucketPrefix: "prefix",
 });
 ```
 
-To faciliate multi region deployments, there is an assetPrefix property. This 
+To faciliate multi region deployments, there is an assetBucketPrefix property. This 
 gets added to the region the Stack Set is deployed to. The stack synthesis for 
 the Stack Set would look for a bucket named `prefix-{Region}` in the example 
 above. `{Region}` is whatever region you are deploying the Stack Set to as 
