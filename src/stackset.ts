@@ -541,7 +541,7 @@ export interface OperationPreferences {
 }
 
 export enum RegionConcurrencyType {
-  SEQUENTIAL = 'SEQUENCIAL',
+  SEQUENTIAL = 'SEQUENTIAL',
   PARALLEL = 'PARALLEL',
 }
 
