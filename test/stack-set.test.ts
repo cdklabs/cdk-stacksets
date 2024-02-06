@@ -1,10 +1,31 @@
+import path from 'path';
 import {
-  App, Stack,
+  App, Stack, aws_lambda as lambda, aws_s3 as s3,
 } from 'aws-cdk-lib';
 
 import { Template } from 'aws-cdk-lib/assertions';
+import * as cxapi from 'aws-cdk-lib/cx-api';
+import { Construct } from 'constructs';
 import { Capability, DeploymentType, StackSet, StackSetTarget, StackSetTemplate } from '../src/stackset';
-import { StackSetStack } from '../src/stackset-stack';
+import { StackSetStack, StackSetStackProps } from '../src/stackset-stack';
+
+class LambdaStackSet extends StackSetStack {
+  constructor(scope: Construct, id: string, props?: StackSetStackProps) {
+    super(scope, id, props);
+
+    new lambda.Function(this, 'Lambda', {
+      runtime: lambda.Runtime.NODEJS_18_X,
+      handler: 'index.handler',
+      code: lambda.Code.fromAsset(path.join(__dirname, 'lambda')),
+    });
+
+    new lambda.Function(this, 'Lambda2', {
+      runtime: lambda.Runtime.NODEJS_18_X,
+      handler: 'index.handler',
+      code: lambda.Code.fromAsset(path.join(__dirname, 'lambda')),
+    });
+  }
+}
 
 test('default', () => {
   const app = new App();
@@ -302,4 +323,75 @@ test('has IAM capabilities', () => {
       'CAPABILITY_NAMED_IAM',
     ],
   });
+});
+
+test('requires asset bucket to be passed', () => {
+  const app = new App();
+  const stack = new Stack(app);
+
+  expect(() => {
+    const lambdaStack = new LambdaStackSet(stack, 'LambdaStack');
+    new StackSet(stack, 'StackSet', {
+      target: StackSetTarget.fromAccounts({
+        regions: ['us-east-1'],
+        accounts: ['11111111111'],
+      }),
+      template: StackSetTemplate.fromStackSetStack(new StackSetStack(lambdaStack, 'LambdaStack')),
+      capabilities: [Capability.IAM, Capability.NAMED_IAM],
+    });
+  }).toThrow('An Asset Bucket must be provided to use File Assets');
+});
+
+test('test lambda assets with one asset bucket', () => {
+  const app = new App({
+    context: {
+      [cxapi.ASSET_RESOURCE_METADATA_ENABLED_CONTEXT]: true,
+    },
+  });
+  const stack = new Stack(app);
+  const lambdaStack = new LambdaStackSet(stack, 'LambdaStack', {
+    assetBuckets: [s3.Bucket.fromBucketName(stack, 'AssetBucket', 'integ-assets')],
+    assetBucketPrefix: 'prefix',
+  });
+
+  new StackSet(stack, 'StackSet', {
+    target: StackSetTarget.fromAccounts({
+      regions: ['us-east-1'],
+      accounts: ['11111111111'],
+      parameterOverrides: {
+        Param1: 'Value1',
+      },
+    }),
+    template: StackSetTemplate.fromStackSetStack(lambdaStack),
+    capabilities: [Capability.IAM, Capability.NAMED_IAM],
+  });
+
+  Template.fromStack(stack).resourceCountIs('Custom::CDKBucketDeployment', 1);
+});
+
+test('test lambda assets with two asset buckets', () => {
+  const app = new App({
+    context: {
+      [cxapi.ASSET_RESOURCE_METADATA_ENABLED_CONTEXT]: true,
+    },
+  });
+  const stack = new Stack(app);
+  const lambdaStack = new LambdaStackSet(stack, 'LambdaStack', {
+    assetBuckets: [s3.Bucket.fromBucketName(stack, 'AssetBucket', 'integ-assets'), s3.Bucket.fromBucketName(stack, 'AssetBucket2', 'integ-assets2')],
+    assetBucketPrefix: 'prefix',
+  });
+
+  new StackSet(stack, 'StackSet', {
+    target: StackSetTarget.fromAccounts({
+      regions: ['us-east-1'],
+      accounts: ['11111111111'],
+      parameterOverrides: {
+        Param1: 'Value1',
+      },
+    }),
+    template: StackSetTemplate.fromStackSetStack(lambdaStack),
+    capabilities: [Capability.IAM, Capability.NAMED_IAM],
+  });
+
+  Template.fromStack(stack).resourceCountIs('Custom::CDKBucketDeployment', 2);
 });
