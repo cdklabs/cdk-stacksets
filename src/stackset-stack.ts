@@ -15,12 +15,18 @@ import {
   App,
   Resource,
   Annotations,
+  Fn,
 } from 'aws-cdk-lib';
-import { CfnBucket, IBucket } from 'aws-cdk-lib/aws-s3';
+import { IBucket } from 'aws-cdk-lib/aws-s3';
 import { BucketDeployment, Source } from 'aws-cdk-lib/aws-s3-deployment';
 import { Construct } from 'constructs';
 
-export const fileAssetResourceName = 'StackSetAssetsBucketDeployment';
+export const fileAssetResourceNames: string[] = [];
+
+interface AssetBucketDeploymentProperties {
+  assetBucket: IBucket;
+  bucketDeployment?: BucketDeployment;
+}
 
 /**
  * Deployment environment for an AWS StackSet stack.
@@ -28,17 +34,27 @@ export const fileAssetResourceName = 'StackSetAssetsBucketDeployment';
  * Interoperates with the StackSynthesizer of the parent stack.
  */
 export class StackSetStackSynthesizer extends StackSynthesizer {
-  private readonly assetBucket?: IBucket;
-  private bucketDeployment?: BucketDeployment;
+  private readonly assetBuckets?: IBucket[];
+  private readonly assetBucketPrefix?: string;
+  private bucketDeployments: { [key: string]: AssetBucketDeploymentProperties };
 
-  constructor(assetBucket?: IBucket) {
+  constructor(assetBuckets?: IBucket[], assetBucketPrefix?: string) {
     super();
-    this.assetBucket = assetBucket;
+    this.assetBuckets = assetBuckets;
+    this.assetBucketPrefix = assetBucketPrefix;
+    this.bucketDeployments = {};
+    for (const assetBucket of assetBuckets ?? []) {
+      this.bucketDeployments[assetBucket.bucketName] = { assetBucket };
+    }
   }
 
   public addFileAsset(asset: FileAssetSource): FileAssetLocation {
-    if (!this.assetBucket) {
+    if (!this.assetBuckets) {
       throw new Error('An Asset Bucket must be provided to use File Assets');
+    }
+
+    if (!this.assetBucketPrefix) {
+      throw new Error('An Asset Bucket Prefix must be provided to use File Assets');
     }
 
     if (!asset.fileName) {
@@ -48,34 +64,41 @@ export class StackSetStackSynthesizer extends StackSynthesizer {
     const outdir = App.of(this.boundStack)?.outdir ?? 'cdk.out';
     const assetPath = `${outdir}/${asset.fileName}`;
 
-    if (!this.bucketDeployment) {
-      const parentStack = (this.boundStack as StackSetStack)._getParentStack();
+    for (const assetBucket of this.assetBuckets) {
+      const index = this.assetBuckets.indexOf(assetBucket);
+      const assetDeployment = this.bucketDeployments[assetBucket.bucketName];
 
-      if (!Resource.isOwnedResource(this.assetBucket)) {
-        Annotations.of(parentStack).addWarning('[WARNING] Bucket Policy Permissions cannot be added to' +
-          ' referenced Bucket. Please make sure your bucket has the correct permissions');
+      if (!assetDeployment.bucketDeployment) {
+        const parentStack = (this.boundStack as StackSetStack)._getParentStack();
+
+        if (!Resource.isOwnedResource(assetDeployment.assetBucket)) {
+          Annotations.of(parentStack).addWarning('[WARNING] Bucket Policy Permissions cannot be added to' +
+              ' referenced Bucket. Please make sure your bucket has the correct permissions');
+        }
+
+        const bucketDeploymentConstructName = `${Names.uniqueId(this.boundStack)}-AssetBucketDeployment-${index}`;
+
+        fileAssetResourceNames.push(bucketDeploymentConstructName);
+
+        const bucketDeployment = new BucketDeployment(
+          parentStack,
+          bucketDeploymentConstructName,
+          {
+            sources: [Source.asset(assetPath)],
+            destinationBucket: assetDeployment.assetBucket,
+            extract: false,
+            prune: false,
+          },
+        );
+
+        assetDeployment.bucketDeployment = bucketDeployment;
+      } else {
+        assetDeployment.bucketDeployment.addSource(Source.asset(assetPath));
       }
-
-      const bucketDeployment = new BucketDeployment(
-        parentStack,
-        fileAssetResourceName,
-        {
-          sources: [Source.asset(assetPath)],
-          destinationBucket: this.assetBucket,
-          extract: false,
-          prune: false,
-        },
-      );
-
-      this.bucketDeployment = bucketDeployment;
-
-    } else {
-      this.bucketDeployment.addSource(Source.asset(assetPath));
     }
 
-    const physicalName = this.physicalNameOfBucket(this.assetBucket);
+    const bucketName = Fn.join('-', [this.assetBucketPrefix, this.boundStack.region]);
 
-    const bucketName = physicalName;
     const assetFileBaseName = path.basename(asset.fileName);
     const s3Filename = assetFileBaseName.split('.')[1] + '.zip';
     const objectKey = `${s3Filename}`;
@@ -83,19 +106,6 @@ export class StackSetStackSynthesizer extends StackSynthesizer {
     const httpUrl = `https://s3.${bucketName}/${objectKey}`;
 
     return { bucketName, objectKey, httpUrl, s3ObjectUrl };
-  }
-
-  private physicalNameOfBucket(bucket: IBucket) {
-    let resolvedName;
-    if (Resource.isOwnedResource(bucket)) {
-      resolvedName = Stack.of(bucket).resolve((bucket.node.defaultChild as CfnBucket).bucketName);
-    } else {
-      resolvedName = bucket.bucketName;
-    }
-    if (resolvedName === undefined) {
-      throw new Error('A bucketName must be provided to use Assets');
-    }
-    return resolvedName;
   }
 
   public addDockerImageAsset(_asset: DockerImageAssetSource): DockerImageAssetLocation {
@@ -117,10 +127,9 @@ export interface StackSetStackProps {
    * A Bucket can be passed to store assets, enabling StackSetStack Asset support
    * @default No Bucket provided and Assets will not be supported.
    */
-  readonly assetBucket?: IBucket;
-
+  readonly assetBuckets?: IBucket[];
+  readonly assetBucketPrefix?: string;
 }
-
 
 /**
  * A StackSet stack, which is similar to a normal CloudFormation stack with
@@ -136,7 +145,7 @@ export class StackSetStack extends Stack {
   private _parentStack: Stack;
   constructor(scope: Construct, id: string, props: StackSetStackProps = {}) {
     super(scope, id, {
-      synthesizer: new StackSetStackSynthesizer(props.assetBucket),
+      synthesizer: new StackSetStackSynthesizer(props.assetBuckets, props.assetBucketPrefix),
     });
 
     this._parentStack = findParentStack(scope);
@@ -180,7 +189,6 @@ export class StackSetStack extends Stack {
       sourceHash: templateHash,
       fileName: this.templateFile,
     }).httpUrl;
-
 
     fs.writeFileSync(path.join(session.assembly.outdir, this.templateFile), cfn);
   }
