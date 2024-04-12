@@ -114,6 +114,17 @@ export interface OrganizationsTargetOptions extends TargetOptions {
    * specified in the organizationUnits property
    */
   readonly excludeAccounts?: string[];
+
+  /**
+   * A list of AWS accounts to deploy the StackSet to. This can be useful if
+   * you want to deploy the StackSet to specific accounts that exist in an OU
+   * that is provided in `organizationalUnits`, but you do not want the
+   * StackSet to be deployed to all accounts in the OU.
+   *
+   * @default - Stacks will be deployed to all accounts that exist in the OUs
+   * specified in the organizationUnits property
+   */
+  readonly filteredAccounts?: string[];
 }
 
 /**
@@ -189,7 +200,7 @@ export abstract class StackSetTarget {
   /**
    * Deploy the StackSet to a list of AWS Organizations organizational units.
    *
-   * You can optionally include/exclude individual AWS accounts.
+   * You can optionally include/exclude individual AWS accounts or filter to a list of specific accounts in the OU.
    *
    * @example
    * StackSetTarget.fromOrganizationalUnits({
@@ -233,7 +244,7 @@ class AccountsTarget extends StackSetTarget {
     return {
       regions: this.options.regions,
       parameterOverrides: this._renderParameters(this.options.parameterOverrides),
-      accountFilterType: AccountFilterType.INTERSECTION,
+      accountFilterType: AccountFilterType.NONE,
       accounts: this.options.accounts,
     };
   }
@@ -245,19 +256,26 @@ class OrganizationsTarget extends StackSetTarget {
   }
 
   public _bind(_scope: Construct, _options: TargetBindOptions = {}): StackSetTargetConfig {
-    if (this.options.excludeAccounts && this.options.additionalAccounts) {
-      throw new Error("cannot specify both 'excludeAccounts' and 'additionalAccounts'");
+    if (this.options.additionalAccounts && this.options.filteredAccounts) {
+      throw new Error("cannot specify both 'additionalAccounts' and 'filteredAccounts'");
     }
-
-    const filterType = this.options.additionalAccounts ? AccountFilterType.UNION
-      : this.options.excludeAccounts ? AccountFilterType.DIFFERENCE
-        : AccountFilterType.NONE;
+    if (this.options.excludeAccounts && (this.options.additionalAccounts || this.options.filteredAccounts)) {
+      throw new Error("cannot specify 'excludeAccounts' with 'additionalAccounts' or 'filteredAccounts'");
+    }
+  
+    const filterType = this.options.additionalAccounts
+      ? AccountFilterType.UNION
+      : this.options.excludeAccounts
+      ? AccountFilterType.DIFFERENCE
+      : this.options.filteredAccounts
+      ? AccountFilterType.INTERSECTION
+      : AccountFilterType.NONE;
     return {
       regions: this.options.regions,
       parameterOverrides: this._renderParameters(this.options.parameterOverrides),
       accountFilterType: filterType,
       organizationalUnits: this.options.organizationalUnits,
-      accounts: this.options.additionalAccounts ?? this.options.excludeAccounts,
+      accounts: this.options.additionalAccounts ?? this.options.excludeAccounts ?? this.options.filteredAccounts,
     };
   }
 }
@@ -690,6 +708,11 @@ export class StackSet extends Resource implements IStackSet {
         }));
       }
     }
+
+    if (targetConfig.accounts && !targetConfig.organizationalUnits && this.permissionModel === PermissionModel.SERVICE_MANAGED) {
+      throw new Error('cannot specify accounts without organizational units when using service managed permissions');
+    }
+
     this.stackInstances.push({
       regions: targetConfig.regions,
       parameterOverrides: targetConfig.parameterOverrides,

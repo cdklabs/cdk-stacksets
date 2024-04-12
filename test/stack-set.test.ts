@@ -193,39 +193,22 @@ test('service managed stackset with options', () => {
   const app = new App();
   const stack = new Stack(app);
 
-  new StackSet(stack, 'StackSet', {
-    target: StackSetTarget.fromAccounts({
-      regions: ['us-east-1'],
-      accounts: ['11111111111'],
-      parameterOverrides: {
-        Param1: 'Value1',
-      },
-    }),
-    deploymentType: DeploymentType.serviceManaged({
-      delegatedAdmin: false,
-      autoDeployEnabled: false,
-    }),
-    template: StackSetTemplate.fromStackSetStack(new StackSetStack(stack, 'Stack')),
-  });
-
-  Template.fromStack(stack).hasResourceProperties('AWS::CloudFormation::StackSet', {
-    ManagedExecution: { Active: true },
-    PermissionModel: 'SERVICE_MANAGED',
-    CallAs: 'SELF',
-    AutoDeployment: {
-      Enabled: false,
-    },
-    TemplateURL: {
-      'Fn::Sub': 'https://s3.${AWS::Region}.${AWS::URLSuffix}/cdk-hnb659fds-assets-${AWS::AccountId}-${AWS::Region}/44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a.json',
-    },
-    StackInstancesGroup: [{
-      Regions: ['us-east-1'],
-      DeploymentTargets: {
-        Accounts: ['11111111111'],
-        AccountFilterType: 'INTERSECTION',
-      },
-    }],
-  });
+  expect(() => {
+    new StackSet(stack, 'StackSet', {
+      target: StackSetTarget.fromAccounts({
+        regions: ['us-east-1'],
+        accounts: ['11111111111'],
+        parameterOverrides: {
+          Param1: 'Value1',
+        },
+      }),
+      deploymentType: DeploymentType.serviceManaged({
+        delegatedAdmin: false,
+        autoDeployEnabled: false,
+      }),
+      template: StackSetTemplate.fromStackSetStack(new StackSetStack(stack, 'Stack')),
+    });
+  }).toThrow(/autoDeployRetainStacks only applies if autoDeploy is enabled/);
 });
 
 test('service managed stackset throws error if autoDeployRetainStacks is provided and autoDeploy is disabled', () => {
