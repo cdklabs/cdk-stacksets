@@ -9,10 +9,11 @@ const project = new CdklabsConstructLibrary({
   cdkVersion: MIN_CDK_VERSION,
   defaultReleaseBranch: 'main',
   name: 'cdk-stacksets',
-  repositoryUrl: 'https://github.com/cdklabs/cdk-stacksets.git',
+  repository: 'https://github.com/cdklabs/cdk-stacksets.git',
   devDeps: ['cdklabs-projen-project-types', '@aws-cdk/integ-tests-alpha', `@aws-cdk/integ-runner@${MIN_CDK_VERSION}`, `aws-cdk@${MIN_CDK_VERSION}`],
   publishDryRun: false,
   private: false,
+  enablePRAutoMerge: true,
 });
 
 const tasksJson = project.tryFindObjectFile('.projen/tasks.json');
