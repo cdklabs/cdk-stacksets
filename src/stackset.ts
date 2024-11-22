@@ -453,7 +453,7 @@ export interface StackSetProps {
    * In order to use DeploymentType.serviceManaged() the account needs to either be the
    * organizations's management account or a delegated administrator account.
    *
-   * @default DeploymentType.self()
+   * @default DeploymentType.selfManaged()
    */
   readonly deploymentType?: DeploymentType;
 
