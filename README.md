@@ -22,12 +22,12 @@ const stack = new Stack();
 const stackSetStack = new StackSetStack(stack, 'MyStackSet');
 
 new StackSet(stack, 'StackSet', {
+  parameters: {
+    SomeParam: 'Value',
+  },
   target: StackSetTarget.fromAccounts({
     regions: ['us-east-1'],
     accounts: ['11111111111'],
-    parameterOverrides: {
-      SomeParam: 'overrideValue',
-    },
   }),
   template: StackSetTemplate.fromStackSetStack(stackSetStack),
 });
