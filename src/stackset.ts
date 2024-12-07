@@ -614,17 +614,26 @@ export class StackSet extends Resource implements IStackSet {
 
     const deploymentTypeConfig = (props.deploymentType ?? DeploymentType.selfManaged())._bind(this);
     if (deploymentTypeConfig.permissionsModel === PermissionModel.SELF_MANAGED) {
-      this._role = deploymentTypeConfig.adminRole ?? new iam.Role(scope, 'AdminRole', {
-        assumedBy: new iam.ServicePrincipal('cloudformation.amazonaws.com'),
-      });
-
-      this._role.addToPrincipalPolicy(new iam.PolicyStatement({
-        effect: iam.Effect.ALLOW,
-        actions: ['sts:AssumeRole'],
-        resources: [
-          `arn:aws:iam::*:role/${deploymentTypeConfig.executionRoleName ?? 'AWSCloudFormationStackSetExecutionRole'}`,
-        ],
-      }));
+      if (deploymentTypeConfig.adminRole) {
+        this._role = deploymentTypeConfig.adminRole;
+      } else {
+        this._role = new iam.Role(scope, 'AdminRole', {
+          assumedBy: new iam.ServicePrincipal('cloudformation.amazonaws.com'),
+          inlinePolicies: {
+            AssumeRolePolicy: new iam.PolicyDocument({
+              statements: [
+                new iam.PolicyStatement({
+                  effect: iam.Effect.ALLOW,
+                  actions: ['sts:AssumeRole'],
+                  resources: [
+                    `arn:aws:iam::*:role/${deploymentTypeConfig.executionRoleName ?? 'AWSCloudFormationStackSetExecutionRole'}`,
+                  ],
+                }),
+              ],
+            }),
+          },
+        });
+      }
     }
 
     if (props.capabilities?.includes(Capability.AUTO_EXPAND) && deploymentTypeConfig.permissionsModel === PermissionModel.SERVICE_MANAGED) {
