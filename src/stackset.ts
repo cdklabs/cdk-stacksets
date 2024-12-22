@@ -756,6 +756,10 @@ export class StackSet extends Resource implements IStackSet {
       } : {}),
     });
 
+    if (this._role) {
+      stackSet.node.addDependency(this._role);
+    }
+
     // the file asset bucket deployment needs to complete before the stackset can deploy
     for (const fileAssetResourceName of fileAssetResourceNames) {
       const fileAssetResource = scope.node.tryFindChild(fileAssetResourceName);
