@@ -1574,7 +1574,7 @@ public readonly deploymentType: DeploymentType;
 ```
 
 - *Type:* <a href="#cdk-stacksets.DeploymentType">DeploymentType</a>
-- *Default:* DeploymentType.self()
+- *Default:* DeploymentType.selfManaged()
 
 The type of deployment for this StackSet.
 
