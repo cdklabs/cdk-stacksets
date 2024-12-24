@@ -75,7 +75,7 @@ export class StackSetStack extends Stack {
   public readonly templateFile: string;
   private _templateUrl?: string;
   private _parentStack: Stack;
-  constructor(scope: Construct, id: string, props: StackSetStackProps) {
+  constructor(scope: Construct, id: string, props: StackSetStackProps = {}) {
     super(scope, id, {
       synthesizer: new StackSetStackSynthesizer(),
       ...props,
