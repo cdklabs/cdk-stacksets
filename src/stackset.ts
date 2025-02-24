@@ -139,7 +139,8 @@ interface StackSetTargetConfig {
   readonly organizationalUnits?: string[];
 }
 
-interface TargetBindOptions {}
+interface TargetBindOptions {
+}
 
 /**
  * Which organizational units and/or accounts the stack set
@@ -346,7 +347,8 @@ interface DeploymentTypeConfig {
   readonly callAs?: CallAs;
 }
 
-interface DeploymentTypeOptions {}
+interface DeploymentTypeOptions {
+}
 
 export abstract class DeploymentType {
   /**
@@ -474,6 +476,11 @@ export interface StackSetProps {
    *
    */
   readonly operationPreferences?: OperationPreferences;
+
+  /**
+   * The input parameters for the stack set template.
+   */
+  readonly parameters?: StackSetParameter;
 
   /**
    * Specify a list of capabilities required by your stackset.
@@ -607,6 +614,7 @@ export class StackSet extends Resource implements IStackSet {
 
   private readonly _role?: iam.IRole;
   private readonly permissionModel: PermissionModel;
+
   constructor(scope: Construct, id: string, props: StackSetProps) {
     super(scope, id, {
       physicalName: props.stackSetName ?? Lazy.string({ produce: () => Names.uniqueResourceName(this, {}) }),
@@ -655,7 +663,17 @@ export class StackSet extends Resource implements IStackSet {
       permissionModel: deploymentTypeConfig.permissionsModel,
       callAs: deploymentTypeConfig.callAs,
       templateUrl: props.template.templateUrl,
-      stackInstancesGroup: Lazy.any({ produce: () => { return this.stackInstances; } }),
+      stackInstancesGroup: Lazy.any({
+        produce: () => {
+          return this.stackInstances;
+        },
+      }),
+      parameters: props.parameters ? Object.entries(props.parameters).map((entry) => {
+        return {
+          parameterKey: entry[0],
+          parameterValue: entry[1],
+        };
+      }) : undefined,
     });
 
     // the file asset bucket deployment needs to complete before the stackset can deploy
