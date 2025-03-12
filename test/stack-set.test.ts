@@ -395,3 +395,28 @@ test('test lambda assets with two asset buckets', () => {
 
   Template.fromStack(stack).resourceCountIs('Custom::CDKBucketDeployment', 2);
 });
+
+test('test stackset depends on role', () => {
+  const app = new App();
+  const stack = new Stack(app);
+
+  new StackSet(stack, 'StackSet', {
+    target: StackSetTarget.fromAccounts({
+      regions: ['us-east-1'],
+      accounts: ['11111111111'],
+      parameterOverrides: {
+        Param1: 'Value1',
+      },
+    }),
+    template: StackSetTemplate.fromStackSetStack(
+      new StackSetStack(stack, 'Stack'),
+    ),
+  });
+
+  const role = Template.fromStack(stack).findResources('AWS::IAM::Role');
+  const defaultPolicy = Template.fromStack(stack).findResources('AWS::IAM::Policy');
+
+  Template.fromStack(stack).hasResource('AWS::CloudFormation::StackSet', {
+    DependsOn: [Object.keys(defaultPolicy)[0], Object.keys(role)[0]],
+  });
+});
