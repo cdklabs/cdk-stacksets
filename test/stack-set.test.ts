@@ -6,7 +6,7 @@ import {
 import { Template } from 'aws-cdk-lib/assertions';
 import * as cxapi from 'aws-cdk-lib/cx-api';
 import { Construct } from 'constructs';
-import { Capability, DeploymentType, StackSet, StackSetTarget, StackSetTemplate } from '../src/stackset';
+import { Capability, ConcurrencyMode, DeploymentType, StackSet, StackSetTarget, StackSetTemplate } from '../src/stackset';
 import { StackSetStack, StackSetStackProps } from '../src/stackset-stack';
 
 class LambdaStackSet extends StackSetStack {
@@ -14,13 +14,13 @@ class LambdaStackSet extends StackSetStack {
     super(scope, id, props);
 
     new lambda.Function(this, 'Lambda', {
-      runtime: lambda.Runtime.NODEJS_18_X,
+      runtime: lambda.Runtime.NODEJS_20_X,
       handler: 'index.handler',
       code: lambda.Code.fromAsset(path.join(__dirname, 'lambda')),
     });
 
     new lambda.Function(this, 'Lambda2', {
-      runtime: lambda.Runtime.NODEJS_18_X,
+      runtime: lambda.Runtime.NODEJS_20_X,
       handler: 'index.handler',
       code: lambda.Code.fromAsset(path.join(__dirname, 'lambda')),
     });
@@ -394,4 +394,161 @@ test('test lambda assets with two asset buckets', () => {
   });
 
   Template.fromStack(stack).resourceCountIs('Custom::CDKBucketDeployment', 2);
+});
+
+test('allows concurrency mode', () => {
+  const app = new App();
+  const stack = new Stack(app);
+
+  new StackSet(stack, 'StackSet', {
+    target: StackSetTarget.fromAccounts({
+      regions: ['us-east-1'],
+      accounts: ['11111111111'],
+      parameterOverrides: {
+        Param1: 'Value1',
+      },
+    }),
+    template: StackSetTemplate.fromStackSetStack(new StackSetStack(stack, 'Stack')),
+    operationPreferences: {
+      concurrencyMode: ConcurrencyMode.STRICT_FAILURE_TOLERANCE,
+      failureTolerancePercentage: 10,
+    },
+  });
+
+  Template.fromStack(stack).hasResourceProperties('AWS::CloudFormation::StackSet', {
+    ManagedExecution: { Active: true },
+    PermissionModel: 'SELF_MANAGED',
+    TemplateURL: {
+      'Fn::Sub': 'https://s3.${AWS::Region}.${AWS::URLSuffix}/cdk-hnb659fds-assets-${AWS::AccountId}-${AWS::Region}/44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a.json',
+    },
+    StackInstancesGroup: [{
+      Regions: ['us-east-1'],
+      DeploymentTargets: {
+        Accounts: ['11111111111'],
+      },
+    }],
+    OperationPreferences: {
+      ConcurrencyMode: 'STRICT_FAILURE_TOLERANCE',
+      FailureTolerancePercentage: 10,
+    },
+  });
+});
+
+test('allows concurrency mode for SOFT_FAILURE_TOLERANCE', () => {
+  const app = new App();
+  const stack = new Stack(app);
+
+  new StackSet(stack, 'StackSet', {
+    target: StackSetTarget.fromAccounts({
+      regions: ['us-east-1'],
+      accounts: ['11111111111'],
+      parameterOverrides: {
+        Param1: 'Value1',
+      },
+    }),
+    template: StackSetTemplate.fromStackSetStack(new StackSetStack(stack, 'Stack')),
+    operationPreferences: {
+      concurrencyMode: ConcurrencyMode.SOFT_FAILURE_TOLERANCE,
+      failureToleranceCount: 10,
+      maxConcurrentCount: 11,
+    },
+  });
+
+  Template.fromStack(stack).hasResourceProperties('AWS::CloudFormation::StackSet', {
+    ManagedExecution: { Active: true },
+    PermissionModel: 'SELF_MANAGED',
+    TemplateURL: {
+      'Fn::Sub': 'https://s3.${AWS::Region}.${AWS::URLSuffix}/cdk-hnb659fds-assets-${AWS::AccountId}-${AWS::Region}/44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a.json',
+    },
+    StackInstancesGroup: [{
+      Regions: ['us-east-1'],
+      DeploymentTargets: {
+        Accounts: ['11111111111'],
+      },
+    }],
+    OperationPreferences: {
+      ConcurrencyMode: 'SOFT_FAILURE_TOLERANCE',
+      FailureToleranceCount: 10,
+      MaxConcurrentCount: 11,
+    },
+  });
+});
+
+test('requires failure tolerance if concurrency mode set', () => {
+  const app = new App();
+  const stack = new Stack(app);
+
+  expect(() => {
+    new StackSet(stack, 'StackSet', {
+      target: StackSetTarget.fromAccounts({
+        regions: ['us-east-1'],
+        accounts: ['11111111111'],
+      }),
+      template: StackSetTemplate.fromStackSetStack(new StackSetStack(stack, 'Stack')),
+      operationPreferences: {
+        concurrencyMode: ConcurrencyMode.STRICT_FAILURE_TOLERANCE,
+      },
+    });
+  }).toThrow('concurrencyMode requires either failureToleranceCount or failureTolerancePercentage to be specified');
+});
+
+test('requires only one failure tolerance if concurrency mode set', () => {
+  const app = new App();
+  const stack = new Stack(app);
+
+  expect(() => {
+    new StackSet(stack, 'StackSet', {
+      target: StackSetTarget.fromAccounts({
+        regions: ['us-east-1'],
+        accounts: ['11111111111'],
+      }),
+      template: StackSetTemplate.fromStackSetStack(new StackSetStack(stack, 'Stack')),
+      operationPreferences: {
+        concurrencyMode: ConcurrencyMode.STRICT_FAILURE_TOLERANCE,
+        failureTolerancePercentage: 10,
+        failureToleranceCount: 10,
+      },
+    });
+  }).toThrow('Cannot specify both failureToleranceCount and failureTolerancePercentage');
+});
+
+test('requires only one concurrency if concurrency mode set', () => {
+  const app = new App();
+  const stack = new Stack(app);
+
+  expect(() => {
+    new StackSet(stack, 'StackSet', {
+      target: StackSetTarget.fromAccounts({
+        regions: ['us-east-1'],
+        accounts: ['11111111111'],
+      }),
+      template: StackSetTemplate.fromStackSetStack(new StackSetStack(stack, 'Stack')),
+      operationPreferences: {
+        concurrencyMode: ConcurrencyMode.STRICT_FAILURE_TOLERANCE,
+        failureToleranceCount: 10,
+        maxConcurrentPercentage: 10,
+        maxConcurrentCount: 10,
+      },
+    });
+  }).toThrow('Cannot specify both maxConcurrentCount and maxConcurrentPercentage');
+});
+
+test('requires maxConcurrentCount is at most one more than the failureToleranceCount.', () => {
+  const app = new App();
+  const stack = new Stack(app);
+
+  expect(() => {
+    new StackSet(stack, 'StackSet', {
+      target: StackSetTarget.fromAccounts({
+        regions: ['us-east-1'],
+        accounts: ['11111111111'],
+      }),
+      template: StackSetTemplate.fromStackSetStack(new StackSetStack(stack, 'Stack')),
+      operationPreferences: {
+        concurrencyMode: ConcurrencyMode.SOFT_FAILURE_TOLERANCE,
+        failureToleranceCount: 10,
+        maxConcurrentCount: 12,
+      },
+    });
+  }).toThrow('maxConcurrentCount must be at most one more than failureToleranceCount');
 });

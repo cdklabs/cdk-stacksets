@@ -833,7 +833,7 @@
                     ],
                     "stackSetName": "integstacksetassettestStackSet091EC131",
                     "templateUrl": {
-                      "Fn::Sub": "https://s3.${AWS::Region}.${AWS::URLSuffix}/cdk-hnb659fds-assets-${AWS::AccountId}-${AWS::Region}/8a79245976356195e252a35c4adeb67d13403b4aa4797878ffeb1cbdbf6b1e10.json"
+                      "Fn::Sub": "https://s3.${AWS::Region}.${AWS::URLSuffix}/cdk-hnb659fds-assets-${AWS::AccountId}-${AWS::Region}/814f3445f22ad24c845c5d085e5bc1a6eb7492222b9ae9bed43a7d363852ef32.json"
                     }
                   }
                 },
