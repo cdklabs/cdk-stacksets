@@ -530,13 +530,22 @@ export enum Capability {
   AUTO_EXPAND = 'CAPABILITY_AUTO_EXPAND',
 }
 
+/**
+ * Options for controlling how StackSet operations are performed
+ */
 export interface OperationPreferences {
+  readonly concurrencyMode?: ConcurrencyMode;
   readonly failureToleranceCount?: number;
   readonly failureTolerancePercentage?: number;
   readonly maxConcurrentCount?: number;
   readonly maxConcurrentPercentage?: number;
   readonly regionConcurrencyType?: RegionConcurrencyType;
   readonly regionOrder?: string[];
+}
+
+export enum ConcurrencyMode {
+  STRICT_FAILURE_TOLERANCE = 'STRICT_FAILURE_TOLERANCE',
+  SOFT_FAILURE_TOLERANCE = 'SOFT_FAILURE_TOLERANCE',
 }
 
 export enum RegionConcurrencyType {
@@ -631,6 +640,58 @@ export class StackSet extends Resource implements IStackSet {
       throw new Error('service managed stacksets do not current support the "AUTO_EXPAND" capability');
     }
 
+    if (props.operationPreferences) {
+      // Validate failure tolerance settings
+      if (props.operationPreferences.failureToleranceCount !== undefined &&
+          props.operationPreferences.failureTolerancePercentage !== undefined) {
+        throw new Error('Cannot specify both failureToleranceCount and failureTolerancePercentage');
+      }
+
+      // Validate concurrent operation settings
+      if (props.operationPreferences.maxConcurrentCount !== undefined &&
+          props.operationPreferences.maxConcurrentPercentage !== undefined) {
+        throw new Error('Cannot specify both maxConcurrentCount and maxConcurrentPercentage');
+      }
+
+      // Validate concurrencyMode requires failure tolerance
+      if (props.operationPreferences.concurrencyMode !== undefined &&
+          props.operationPreferences.failureToleranceCount === undefined &&
+          props.operationPreferences.failureTolerancePercentage === undefined) {
+        throw new Error('concurrencyMode requires either failureToleranceCount or failureTolerancePercentage to be specified');
+      }
+
+      // Validate percentage values are within bounds
+      if (props.operationPreferences.failureTolerancePercentage !== undefined &&
+          (props.operationPreferences.failureTolerancePercentage < 0 ||
+           props.operationPreferences.failureTolerancePercentage > 100)) {
+        throw new Error('failureTolerancePercentage must be between 0 and 100');
+      }
+
+      if (props.operationPreferences.maxConcurrentPercentage !== undefined &&
+          (props.operationPreferences.maxConcurrentPercentage < 0 ||
+           props.operationPreferences.maxConcurrentPercentage > 100)) {
+        throw new Error('maxConcurrentPercentage must be between 0 and 100');
+      }
+
+      // Validate count values are non-negative
+      if (props.operationPreferences.failureToleranceCount !== undefined &&
+          props.operationPreferences.failureToleranceCount < 0) {
+        throw new Error('failureToleranceCount must be greater than or equal to 0');
+      }
+
+      if (props.operationPreferences.maxConcurrentCount !== undefined &&
+          props.operationPreferences.maxConcurrentCount < 1) {
+        throw new Error('maxConcurrentCount must be greater than 0');
+      }
+
+      // Validate MaxConcurrentCount is at most one more than FailureToleranceCount
+      if (props.operationPreferences.maxConcurrentCount !== undefined &&
+          props.operationPreferences.failureToleranceCount !== undefined &&
+          props.operationPreferences.maxConcurrentCount > props.operationPreferences.failureToleranceCount + 1) {
+        throw new Error('maxConcurrentCount must be at most one more than failureToleranceCount');
+      }
+    }
+
     this.permissionModel = deploymentTypeConfig.permissionsModel;
 
     this.addTarget(props.target);
@@ -646,9 +707,13 @@ export class StackSet extends Resource implements IStackSet {
         Active: props.managedExecution ?? true,
       },
       operationPreferences: undefinedIfNoKeys({
-        regionConcurrencyType: props.operationPreferences?.regionConcurrencyType,
-        maxConcurrentPercentage: props.operationPreferences?.maxConcurrentPercentage,
+        concurrencyMode: props.operationPreferences?.concurrencyMode,
+        failureToleranceCount: props.operationPreferences?.failureToleranceCount,
         failureTolerancePercentage: props.operationPreferences?.failureTolerancePercentage,
+        maxConcurrentCount: props.operationPreferences?.maxConcurrentCount,
+        maxConcurrentPercentage: props.operationPreferences?.maxConcurrentPercentage,
+        regionConcurrencyType: props.operationPreferences?.regionConcurrencyType,
+        regionOrder: props.operationPreferences?.regionOrder,
       }),
       stackSetName: this.physicalName,
       capabilities: props.capabilities,

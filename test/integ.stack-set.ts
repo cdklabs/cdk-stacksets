@@ -79,7 +79,7 @@ class LambdaStackSet extends stacksets.StackSetStack {
     super(scope, id, props);
 
     new lambda.Function(this, 'Lambda', {
-      runtime: lambda.Runtime.NODEJS_16_X,
+      runtime: lambda.Runtime.NODEJS_20_X,
       handler: 'index.handler',
       code: lambda.Code.fromAsset(path.join(__dirname, 'lambda')),
     });
