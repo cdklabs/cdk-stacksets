@@ -35,11 +35,11 @@ test('default', () => {
     target: StackSetTarget.fromAccounts({
       regions: ['us-east-1'],
       accounts: ['11111111111'],
-      parameterOverrides: {
-        Param1: 'Value1',
-      },
     }),
     template: StackSetTemplate.fromStackSetStack(new StackSetStack(stack, 'Stack')),
+    parameters: {
+      Param1: 'Value1',
+    },
   });
 
   Template.fromStack(stack).hasResourceProperties('AWS::CloudFormation::StackSet', {
@@ -48,6 +48,10 @@ test('default', () => {
     TemplateURL: {
       'Fn::Sub': 'https://s3.${AWS::Region}.${AWS::URLSuffix}/cdk-hnb659fds-assets-${AWS::AccountId}-${AWS::Region}/44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a.json',
     },
+    Parameters: [{
+      ParameterKey: 'Param1',
+      ParameterValue: 'Value1',
+    }],
     StackInstancesGroup: [{
       Regions: ['us-east-1'],
       DeploymentTargets: {
