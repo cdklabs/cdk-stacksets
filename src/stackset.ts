@@ -14,6 +14,8 @@ import { StackSetStack, fileAssetResourceNames } from './stackset-stack';
  */
 export abstract class StackSetTemplate {
   /**
+   * Creates a StackSetTemplate from a StackSetStack
+   *
    * @param stack the stack to use as the base for the stackset template
    * @returns StackSetTemplate
    */
@@ -441,7 +443,7 @@ export interface StackSetProps {
   /**
    * An optional description to add to the StackSet
    *
-   * @default - no description
+   * @default - none
    */
   readonly description?: string;
 
@@ -471,7 +473,10 @@ export interface StackSetProps {
   readonly managedExecution?: boolean;
 
   /**
+   * The operation preferences for the StackSet.
    *
+   * This allows you to control how the StackSet is deployed
+   * across the target accounts and regions.
    */
   readonly operationPreferences?: OperationPreferences;
 
@@ -539,8 +544,21 @@ export interface OperationPreferences {
   readonly regionOrder?: string[];
 }
 
+/**
+ * The type of concurrency to use when deploying the StackSet to regions.
+ */
 export enum RegionConcurrencyType {
+  /**
+   * Deploy the StackSet to regions sequentially in the order specified in
+   * {@link StackSetProps.operationPreferences.regionOrder}.
+   *
+   * This is the default behavior.
+   */
   SEQUENTIAL = 'SEQUENTIAL',
+
+  /**
+   * Deploy the StackSet to all regions in parallel.
+   */
   PARALLEL = 'PARALLEL',
 }
 
@@ -607,6 +625,14 @@ export class StackSet extends Resource implements IStackSet {
 
   private readonly _role?: iam.IRole;
   private readonly permissionModel: PermissionModel;
+
+  /**
+   * Creates a new StackSet.
+   *
+   * @param scope The scope in which to define this StackSet.
+   * @param id The ID of the StackSet.
+   * @param props The properties of the StackSet.
+   */
   constructor(scope: Construct, id: string, props: StackSetProps) {
     super(scope, id, {
       physicalName: props.stackSetName ?? Lazy.string({ produce: () => Names.uniqueResourceName(this, {}) }),
@@ -672,6 +698,11 @@ export class StackSet extends Resource implements IStackSet {
     return this._role;
   }
 
+  /**
+   * Adds a target to the StackSet.
+   *
+   * @param target the target to add to the StackSet
+   */
   public addTarget(target: StackSetTarget) {
     const targetConfig = target._bind(this);
 
