@@ -478,7 +478,7 @@ export interface StackSetProps {
    * This allows you to control how the StackSet is deployed
    * across the target accounts and regions.
    */
-  readonly operationPreferences?: OperationPreferences;
+  readonly operationPreferences?: cfn.CfnStackSet.OperationPreferencesProperty;
 
   /**
    * Specify a list of capabilities required by your stackset.
@@ -533,15 +533,6 @@ export enum Capability {
    * a service managed stackset.
    */
   AUTO_EXPAND = 'CAPABILITY_AUTO_EXPAND',
-}
-
-export interface OperationPreferences {
-  readonly failureToleranceCount?: number;
-  readonly failureTolerancePercentage?: number;
-  readonly maxConcurrentCount?: number;
-  readonly maxConcurrentPercentage?: number;
-  readonly regionConcurrencyType?: RegionConcurrencyType;
-  readonly regionOrder?: string[];
 }
 
 /**
