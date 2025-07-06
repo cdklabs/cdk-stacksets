@@ -34,10 +34,31 @@ interface AssetBucketDeploymentProperties {
  * Interoperates with the StackSynthesizer of the parent stack.
  */
 export class StackSetStackSynthesizer extends StackSynthesizer {
-  private readonly assetBuckets?: IBucket[];
-  private readonly assetBucketPrefix?: string;
+  /**
+   * An array of Buckets can be passed to store assets, enabling StackSetStack Asset support
+   *
+   * One Bucket is required per target region. The name must be `${assetBucketPrefix}-<region>`, where
+   * `<region>` is the region targeted by the StackSet.
+   *
+   * @default - No Buckets provided and Assets will not be supported.
+   */
+  readonly assetBuckets?: IBucket[];
+  /**
+   * The common prefix for the asset bucket names used by this StackSetStack.
+   *
+   * Required if `assetBuckets` is provided.
+   *
+   * @default - No Buckets provided and Assets will not be supported.
+   */
+  readonly assetBucketPrefix?: string;
   private bucketDeployments: { [key: string]: AssetBucketDeploymentProperties };
 
+  /**
+   * Creates a new StackSetStackSynthesizer.
+   *
+   * @param assetBuckets An array of S3 buckets to use for storing assets.
+   * @param assetBucketPrefix The prefix to use for the asset bucket names.
+   */
   constructor(assetBuckets?: IBucket[], assetBucketPrefix?: string) {
     super();
     this.assetBuckets = assetBuckets;
@@ -124,10 +145,21 @@ export class StackSetStackSynthesizer extends StackSynthesizer {
  */
 export interface StackSetStackProps {
   /**
-   * A Bucket can be passed to store assets, enabling StackSetStack Asset support
-   * @default No Bucket provided and Assets will not be supported.
+   * An array of Buckets can be passed to store assets, enabling StackSetStack Asset support
+   *
+   * One Bucket is required per target region. The name must be `${assetBucketPrefix}-<region>`, where
+   * `<region>` is the region targeted by the StackSet.
+   *
+   * @default - No Buckets provided and Assets will not be supported.
    */
   readonly assetBuckets?: IBucket[];
+  /**
+   * The common prefix for the asset bucket names used by this StackSetStack.
+   *
+   * Required if `assetBuckets` is provided.
+   *
+   * @default - No Buckets provided and Assets will not be supported.
+   */
   readonly assetBucketPrefix?: string;
 }
 
@@ -143,6 +175,13 @@ export class StackSetStack extends Stack {
   public readonly templateFile: string;
   private _templateUrl?: string;
   private _parentStack: Stack;
+
+  /**
+   * Creates a new StackSetStack.
+   * @param scope The scope in which to define this StackSet.
+   * @param id The ID of the StackSet.
+   * @param props The properties of the StackSet.
+   */
   constructor(scope: Construct, id: string, props: StackSetStackProps = {}) {
     super(scope, id, {
       synthesizer: new StackSetStackSynthesizer(props.assetBuckets, props.assetBucketPrefix),
