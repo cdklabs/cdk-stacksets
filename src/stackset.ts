@@ -645,11 +645,7 @@ export class StackSet extends Resource implements IStackSet {
       managedExecution: {
         Active: props.managedExecution ?? true,
       },
-      operationPreferences: undefinedIfNoKeys({
-        regionConcurrencyType: props.operationPreferences?.regionConcurrencyType,
-        maxConcurrentPercentage: props.operationPreferences?.maxConcurrentPercentage,
-        failureTolerancePercentage: props.operationPreferences?.failureTolerancePercentage,
-      }),
+      operationPreferences: props.operationPreferences,
       stackSetName: this.physicalName,
       capabilities: props.capabilities,
       permissionModel: deploymentTypeConfig.permissionsModel,
