@@ -1191,6 +1191,106 @@ A list of AWS accounts to deploy the StackSet to.
 
 ---
 
+### OperationPreferences <a name="OperationPreferences" id="cdk-stacksets.OperationPreferences"></a>
+
+CloudFormation operation preferences.
+
+This maps to `aws_cloudformation.CfnStackSet.OperationPreferencesProperty`.
+
+#### Initializer <a name="Initializer" id="cdk-stacksets.OperationPreferences.Initializer"></a>
+
+```typescript
+import { OperationPreferences } from 'cdk-stacksets'
+
+const operationPreferences: OperationPreferences = { ... }
+```
+
+#### Properties <a name="Properties" id="Properties"></a>
+
+| **Name** | **Type** | **Description** |
+| --- | --- | --- |
+| <code><a href="#cdk-stacksets.OperationPreferences.property.failureToleranceCount">failureToleranceCount</a></code> | <code>number</code> | The number of stack instances that can fail before the operation is considered failed. |
+| <code><a href="#cdk-stacksets.OperationPreferences.property.failureTolerancePercentage">failureTolerancePercentage</a></code> | <code>number</code> | The percentage of stack instances that can fail before the operation is considered failed. |
+| <code><a href="#cdk-stacksets.OperationPreferences.property.maxConcurrentCount">maxConcurrentCount</a></code> | <code>number</code> | The maximum number of stack instances that can be created or updated concurrently. |
+| <code><a href="#cdk-stacksets.OperationPreferences.property.maxConcurrentPercentage">maxConcurrentPercentage</a></code> | <code>number</code> | The maximum percentage of stack instances that can be created or updated concurrently. |
+| <code><a href="#cdk-stacksets.OperationPreferences.property.regionConcurrencyType">regionConcurrencyType</a></code> | <code><a href="#cdk-stacksets.RegionConcurrencyType">RegionConcurrencyType</a></code> | Whether to deploy multiple regions sequentially or in parallel. |
+| <code><a href="#cdk-stacksets.OperationPreferences.property.regionOrder">regionOrder</a></code> | <code>string[]</code> | The order in which to deploy the stack instances to the regions. |
+
+---
+
+##### `failureToleranceCount`<sup>Optional</sup> <a name="failureToleranceCount" id="cdk-stacksets.OperationPreferences.property.failureToleranceCount"></a>
+
+```typescript
+public readonly failureToleranceCount: number;
+```
+
+- *Type:* number
+
+The number of stack instances that can fail before the operation is considered failed.
+
+---
+
+##### `failureTolerancePercentage`<sup>Optional</sup> <a name="failureTolerancePercentage" id="cdk-stacksets.OperationPreferences.property.failureTolerancePercentage"></a>
+
+```typescript
+public readonly failureTolerancePercentage: number;
+```
+
+- *Type:* number
+
+The percentage of stack instances that can fail before the operation is considered failed.
+
+---
+
+##### `maxConcurrentCount`<sup>Optional</sup> <a name="maxConcurrentCount" id="cdk-stacksets.OperationPreferences.property.maxConcurrentCount"></a>
+
+```typescript
+public readonly maxConcurrentCount: number;
+```
+
+- *Type:* number
+
+The maximum number of stack instances that can be created or updated concurrently.
+
+---
+
+##### `maxConcurrentPercentage`<sup>Optional</sup> <a name="maxConcurrentPercentage" id="cdk-stacksets.OperationPreferences.property.maxConcurrentPercentage"></a>
+
+```typescript
+public readonly maxConcurrentPercentage: number;
+```
+
+- *Type:* number
+
+The maximum percentage of stack instances that can be created or updated concurrently.
+
+---
+
+##### `regionConcurrencyType`<sup>Optional</sup> <a name="regionConcurrencyType" id="cdk-stacksets.OperationPreferences.property.regionConcurrencyType"></a>
+
+```typescript
+public readonly regionConcurrencyType: RegionConcurrencyType;
+```
+
+- *Type:* <a href="#cdk-stacksets.RegionConcurrencyType">RegionConcurrencyType</a>
+- *Default:* RegionConcurrencyType.SEQUENTIAL
+
+Whether to deploy multiple regions sequentially or in parallel.
+
+---
+
+##### `regionOrder`<sup>Optional</sup> <a name="regionOrder" id="cdk-stacksets.OperationPreferences.property.regionOrder"></a>
+
+```typescript
+public readonly regionOrder: string[];
+```
+
+- *Type:* string[]
+
+The order in which to deploy the stack instances to the regions.
+
+---
+
 ### OrganizationsTargetOptions <a name="OrganizationsTargetOptions" id="cdk-stacksets.OrganizationsTargetOptions"></a>
 
 Options for deploying a StackSet to a set of Organizational Units (OUs).
@@ -1452,7 +1552,7 @@ const stackSetProps: StackSetProps = { ... }
 | <code><a href="#cdk-stacksets.StackSetProps.property.deploymentType">deploymentType</a></code> | <code><a href="#cdk-stacksets.DeploymentType">DeploymentType</a></code> | The type of deployment for this StackSet. |
 | <code><a href="#cdk-stacksets.StackSetProps.property.description">description</a></code> | <code>string</code> | An optional description to add to the StackSet. |
 | <code><a href="#cdk-stacksets.StackSetProps.property.managedExecution">managedExecution</a></code> | <code>boolean</code> | If this is `true` then StackSets will perform non-conflicting operations concurrently and queue any conflicting operations. |
-| <code><a href="#cdk-stacksets.StackSetProps.property.operationPreferences">operationPreferences</a></code> | <code>aws-cdk-lib.aws_cloudformation.CfnStackSet.OperationPreferencesProperty</code> | The operation preferences for the StackSet. |
+| <code><a href="#cdk-stacksets.StackSetProps.property.operationPreferences">operationPreferences</a></code> | <code><a href="#cdk-stacksets.OperationPreferences">OperationPreferences</a></code> | The operation preferences for the StackSet. |
 | <code><a href="#cdk-stacksets.StackSetProps.property.stackSetName">stackSetName</a></code> | <code>string</code> | The name of the stack set. |
 
 ---
@@ -1554,10 +1654,10 @@ for immediate processing once the conflict is resolved.
 ##### `operationPreferences`<sup>Optional</sup> <a name="operationPreferences" id="cdk-stacksets.StackSetProps.property.operationPreferences"></a>
 
 ```typescript
-public readonly operationPreferences: OperationPreferencesProperty;
+public readonly operationPreferences: OperationPreferences;
 ```
 
-- *Type:* aws-cdk-lib.aws_cloudformation.CfnStackSet.OperationPreferencesProperty
+- *Type:* <a href="#cdk-stacksets.OperationPreferences">OperationPreferences</a>
 
 The operation preferences for the StackSet.
 

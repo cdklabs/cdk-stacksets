@@ -535,12 +535,38 @@ export enum Capability {
   AUTO_EXPAND = 'CAPABILITY_AUTO_EXPAND',
 }
 
+/**
+ * CloudFormation operation preferences.
+ *
+ * This maps to `aws_cloudformation.CfnStackSet.OperationPreferencesProperty`.
+ */
 export interface OperationPreferences {
+  /**
+   * The number of stack instances that can fail before the operation is considered failed.
+   */
   readonly failureToleranceCount?: number;
+  /**
+   * The percentage of stack instances that can fail before the operation is considered failed.
+   */
   readonly failureTolerancePercentage?: number;
+  /**
+   * The maximum number of stack instances that can be created or updated concurrently.
+   */
   readonly maxConcurrentCount?: number;
+  /**
+   * The maximum percentage of stack instances that can be created or updated concurrently.
+   */
   readonly maxConcurrentPercentage?: number;
+  /**
+   * Whether to deploy multiple regions sequentially or in parallel.
+   *
+   * @enum {RegionConcurrencyType}
+   * @default RegionConcurrencyType.SEQUENTIAL
+   */
   readonly regionConcurrencyType?: RegionConcurrencyType;
+  /**
+   * The order in which to deploy the stack instances to the regions.
+   */
   readonly regionOrder?: string[];
 }
 
