@@ -6,6 +6,7 @@ import {
   App,
   Stack,
   StackProps,
+  CfnParameter,
   aws_sns as sns,
   aws_iam as iam,
   aws_lambda as lambda,

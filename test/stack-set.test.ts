@@ -35,11 +35,11 @@ test('default', () => {
     target: StackSetTarget.fromAccounts({
       regions: ['us-east-1'],
       accounts: ['11111111111'],
+      parameterOverrides: {
+        Param1: 'Value1',
+      },
     }),
     template: StackSetTemplate.fromStackSetStack(new StackSetStack(stack, 'Stack')),
-    parameters: {
-      Param1: 'Value1',
-    },
   });
 
   Template.fromStack(stack).hasResourceProperties('AWS::CloudFormation::StackSet', {
@@ -48,9 +48,40 @@ test('default', () => {
     TemplateURL: {
       'Fn::Sub': 'https://s3.${AWS::Region}.${AWS::URLSuffix}/cdk-hnb659fds-assets-${AWS::AccountId}-${AWS::Region}/44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a.json',
     },
+    StackInstancesGroup: [{
+      Regions: ['us-east-1'],
+      DeploymentTargets: {
+        Accounts: ['11111111111'],
+      },
+    }],
+  });
+});
+
+test('stackset with parameters', () => {
+  const app = new App();
+  const stack = new Stack(app);
+
+  new StackSet(stack, 'StackSet', {
+    target: StackSetTarget.fromAccounts({
+      regions: ['us-east-1'],
+      accounts: ['11111111111'],
+    }),
+    template: StackSetTemplate.fromStackSetStack(new StackSetStack(stack, 'Stack')),
+    parameters: {
+      Param1: 'Value1',
+      Param2: 'Value2',
+    },
+  });
+
+  Template.fromStack(stack).hasResourceProperties('AWS::CloudFormation::StackSet', {
+    ManagedExecution: { Active: true },
+    PermissionModel: 'SELF_MANAGED',
     Parameters: [{
       ParameterKey: 'Param1',
       ParameterValue: 'Value1',
+    }, {
+      ParameterKey: 'Param2',
+      ParameterValue: 'Value2',
     }],
     StackInstancesGroup: [{
       Regions: ['us-east-1'],
