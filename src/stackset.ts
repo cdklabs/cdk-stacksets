@@ -141,8 +141,7 @@ interface StackSetTargetConfig {
   readonly organizationalUnits?: string[];
 }
 
-interface TargetBindOptions {
-}
+interface TargetBindOptions {}
 
 /**
  * Which organizational units and/or accounts the stack set
@@ -349,8 +348,7 @@ interface DeploymentTypeConfig {
   readonly callAs?: CallAs;
 }
 
-interface DeploymentTypeOptions {
-}
+interface DeploymentTypeOptions {}
 
 export abstract class DeploymentType {
   /**
@@ -715,12 +713,14 @@ export class StackSet extends Resource implements IStackSet {
           return this.stackInstances;
         },
       }),
-      parameters: props.parameters ? Object.entries(props.parameters).map((entry) => {
-        return {
-          parameterKey: entry[0],
-          parameterValue: entry[1],
-        };
-      }) : undefined,
+      ...(props.parameters ? {
+        parameters: Object.entries(props.parameters).map((entry) => {
+          return {
+            parameterKey: entry[0],
+            parameterValue: entry[1],
+          };
+        }),
+      } : {}),
     });
 
     // the file asset bucket deployment needs to complete before the stackset can deploy
