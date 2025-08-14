@@ -481,6 +481,11 @@ export interface StackSetProps {
   readonly operationPreferences?: OperationPreferences;
 
   /**
+   * The input parameters for the stack set template.
+   */
+  readonly parameters?: StackSetParameter;
+
+  /**
    * Specify a list of capabilities required by your stackset.
    *
    * StackSets that contains certain functionality require an explicit acknowledgement
@@ -703,7 +708,19 @@ export class StackSet extends Resource implements IStackSet {
       permissionModel: deploymentTypeConfig.permissionsModel,
       callAs: deploymentTypeConfig.callAs,
       templateUrl: props.template.templateUrl,
-      stackInstancesGroup: Lazy.any({ produce: () => { return this.stackInstances; } }),
+      stackInstancesGroup: Lazy.any({
+        produce: () => {
+          return this.stackInstances;
+        },
+      }),
+      ...(props.parameters ? {
+        parameters: Object.entries(props.parameters).map((entry) => {
+          return {
+            parameterKey: entry[0],
+            parameterValue: entry[1],
+          };
+        }),
+      } : {}),
     });
 
     // the file asset bucket deployment needs to complete before the stackset can deploy
