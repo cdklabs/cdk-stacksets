@@ -6,7 +6,7 @@ import {
 import { Template } from 'aws-cdk-lib/assertions';
 import * as cxapi from 'aws-cdk-lib/cx-api';
 import { Construct } from 'constructs';
-import { Capability, DeploymentType, StackSet, StackSetTarget, StackSetTemplate } from '../src/stackset';
+import { Capability, DeploymentType, RegionConcurrencyType, StackSet, StackSetTarget, StackSetTemplate } from '../src/stackset';
 import { StackSetStack, StackSetStackProps } from '../src/stackset-stack';
 
 class LambdaStackSet extends StackSetStack {
@@ -394,4 +394,51 @@ test('test lambda assets with two asset buckets', () => {
   });
 
   Template.fromStack(stack).resourceCountIs('Custom::CDKBucketDeployment', 2);
+});
+
+test('passes operation preferences', () => {
+  const app = new App();
+  const stack = new Stack(app);
+
+  new StackSet(stack, 'StackSet', {
+    target: StackSetTarget.fromAccounts({
+      regions: ['us-east-1'],
+      accounts: ['11111111111'],
+      parameterOverrides: {
+        Param1: 'Value1',
+      },
+    }),
+    template: StackSetTemplate.fromStackSetStack(new StackSetStack(stack, 'Stack')),
+    operationPreferences: {
+      // In reality, you would not set all of these at once, but it allows us to test all the properties in one test case
+      regionConcurrencyType: RegionConcurrencyType.PARALLEL,
+      regionOrder: ['us-east-1', 'us-west-2'],
+      maxConcurrentPercentage: 50,
+      maxConcurrentCount: 5,
+      failureTolerancePercentage: 10,
+      failureToleranceCount: 1,
+    },
+  });
+
+  Template.fromStack(stack).hasResourceProperties('AWS::CloudFormation::StackSet', {
+    ManagedExecution: { Active: true },
+    PermissionModel: 'SELF_MANAGED',
+    OperationPreferences: {
+      RegionConcurrencyType: 'PARALLEL',
+      RegionOrder: ['us-east-1', 'us-west-2'],
+      MaxConcurrentPercentage: 50,
+      MaxConcurrentCount: 5,
+      FailureTolerancePercentage: 10,
+      FailureToleranceCount: 1,
+    },
+    TemplateURL: {
+      'Fn::Sub': 'https://s3.${AWS::Region}.${AWS::URLSuffix}/cdk-hnb659fds-assets-${AWS::AccountId}-${AWS::Region}/44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a.json',
+    },
+    StackInstancesGroup: [{
+      Regions: ['us-east-1'],
+      DeploymentTargets: {
+        Accounts: ['11111111111'],
+      },
+    }],
+  });
 });
