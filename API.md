@@ -16,9 +16,9 @@ new StackSet(scope: Construct, id: string, props: StackSetProps)
 
 | **Name** | **Type** | **Description** |
 | --- | --- | --- |
-| <code><a href="#cdk-stacksets.StackSet.Initializer.parameter.scope">scope</a></code> | <code>constructs.Construct</code> | *No description.* |
-| <code><a href="#cdk-stacksets.StackSet.Initializer.parameter.id">id</a></code> | <code>string</code> | *No description.* |
-| <code><a href="#cdk-stacksets.StackSet.Initializer.parameter.props">props</a></code> | <code><a href="#cdk-stacksets.StackSetProps">StackSetProps</a></code> | *No description.* |
+| <code><a href="#cdk-stacksets.StackSet.Initializer.parameter.scope">scope</a></code> | <code>constructs.Construct</code> | The scope in which to define this StackSet. |
+| <code><a href="#cdk-stacksets.StackSet.Initializer.parameter.id">id</a></code> | <code>string</code> | The ID of the StackSet. |
+| <code><a href="#cdk-stacksets.StackSet.Initializer.parameter.props">props</a></code> | <code><a href="#cdk-stacksets.StackSetProps">StackSetProps</a></code> | The properties of the StackSet. |
 
 ---
 
@@ -26,17 +26,23 @@ new StackSet(scope: Construct, id: string, props: StackSetProps)
 
 - *Type:* constructs.Construct
 
+The scope in which to define this StackSet.
+
 ---
 
 ##### `id`<sup>Required</sup> <a name="id" id="cdk-stacksets.StackSet.Initializer.parameter.id"></a>
 
 - *Type:* string
 
+The ID of the StackSet.
+
 ---
 
 ##### `props`<sup>Required</sup> <a name="props" id="cdk-stacksets.StackSet.Initializer.parameter.props"></a>
 
 - *Type:* <a href="#cdk-stacksets.StackSetProps">StackSetProps</a>
+
+The properties of the StackSet.
 
 ---
 
@@ -46,7 +52,7 @@ new StackSet(scope: Construct, id: string, props: StackSetProps)
 | --- | --- |
 | <code><a href="#cdk-stacksets.StackSet.toString">toString</a></code> | Returns a string representation of this construct. |
 | <code><a href="#cdk-stacksets.StackSet.applyRemovalPolicy">applyRemovalPolicy</a></code> | Apply the given removal policy to this resource. |
-| <code><a href="#cdk-stacksets.StackSet.addTarget">addTarget</a></code> | *No description.* |
+| <code><a href="#cdk-stacksets.StackSet.addTarget">addTarget</a></code> | Adds a target to the StackSet. |
 
 ---
 
@@ -86,9 +92,13 @@ account for data recovery and cleanup later (`RemovalPolicy.RETAIN`).
 public addTarget(target: StackSetTarget): void
 ```
 
+Adds a target to the StackSet.
+
 ###### `target`<sup>Required</sup> <a name="target" id="cdk-stacksets.StackSet.addTarget.parameter.target"></a>
 
 - *Type:* <a href="#cdk-stacksets.StackSetTarget">StackSetTarget</a>
+
+the target to add to the StackSet.
 
 ---
 
@@ -247,9 +257,9 @@ new StackSetStack(scope: Construct, id: string, props?: StackSetStackProps)
 
 | **Name** | **Type** | **Description** |
 | --- | --- | --- |
-| <code><a href="#cdk-stacksets.StackSetStack.Initializer.parameter.scope">scope</a></code> | <code>constructs.Construct</code> | *No description.* |
-| <code><a href="#cdk-stacksets.StackSetStack.Initializer.parameter.id">id</a></code> | <code>string</code> | *No description.* |
-| <code><a href="#cdk-stacksets.StackSetStack.Initializer.parameter.props">props</a></code> | <code><a href="#cdk-stacksets.StackSetStackProps">StackSetStackProps</a></code> | *No description.* |
+| <code><a href="#cdk-stacksets.StackSetStack.Initializer.parameter.scope">scope</a></code> | <code>constructs.Construct</code> | The scope in which to define this StackSet. |
+| <code><a href="#cdk-stacksets.StackSetStack.Initializer.parameter.id">id</a></code> | <code>string</code> | The ID of the StackSet. |
+| <code><a href="#cdk-stacksets.StackSetStack.Initializer.parameter.props">props</a></code> | <code><a href="#cdk-stacksets.StackSetStackProps">StackSetStackProps</a></code> | The properties of the StackSet. |
 
 ---
 
@@ -257,17 +267,23 @@ new StackSetStack(scope: Construct, id: string, props?: StackSetStackProps)
 
 - *Type:* constructs.Construct
 
+The scope in which to define this StackSet.
+
 ---
 
 ##### `id`<sup>Required</sup> <a name="id" id="cdk-stacksets.StackSetStack.Initializer.parameter.id"></a>
 
 - *Type:* string
 
+The ID of the StackSet.
+
 ---
 
 ##### `props`<sup>Optional</sup> <a name="props" id="cdk-stacksets.StackSetStack.Initializer.parameter.props"></a>
 
 - *Type:* <a href="#cdk-stacksets.StackSetStackProps">StackSetStackProps</a>
+
+The properties of the StackSet.
 
 ---
 
@@ -1177,6 +1193,10 @@ A list of AWS accounts to deploy the StackSet to.
 
 ### OperationPreferences <a name="OperationPreferences" id="cdk-stacksets.OperationPreferences"></a>
 
+CloudFormation operation preferences.
+
+This maps to `aws_cloudformation.CfnStackSet.OperationPreferencesProperty`.
+
 #### Initializer <a name="Initializer" id="cdk-stacksets.OperationPreferences.Initializer"></a>
 
 ```typescript
@@ -1189,12 +1209,12 @@ const operationPreferences: OperationPreferences = { ... }
 
 | **Name** | **Type** | **Description** |
 | --- | --- | --- |
-| <code><a href="#cdk-stacksets.OperationPreferences.property.failureToleranceCount">failureToleranceCount</a></code> | <code>number</code> | *No description.* |
-| <code><a href="#cdk-stacksets.OperationPreferences.property.failureTolerancePercentage">failureTolerancePercentage</a></code> | <code>number</code> | *No description.* |
-| <code><a href="#cdk-stacksets.OperationPreferences.property.maxConcurrentCount">maxConcurrentCount</a></code> | <code>number</code> | *No description.* |
-| <code><a href="#cdk-stacksets.OperationPreferences.property.maxConcurrentPercentage">maxConcurrentPercentage</a></code> | <code>number</code> | *No description.* |
-| <code><a href="#cdk-stacksets.OperationPreferences.property.regionConcurrencyType">regionConcurrencyType</a></code> | <code><a href="#cdk-stacksets.RegionConcurrencyType">RegionConcurrencyType</a></code> | *No description.* |
-| <code><a href="#cdk-stacksets.OperationPreferences.property.regionOrder">regionOrder</a></code> | <code>string[]</code> | *No description.* |
+| <code><a href="#cdk-stacksets.OperationPreferences.property.failureToleranceCount">failureToleranceCount</a></code> | <code>number</code> | The number of stack instances that can fail before the operation is considered failed. |
+| <code><a href="#cdk-stacksets.OperationPreferences.property.failureTolerancePercentage">failureTolerancePercentage</a></code> | <code>number</code> | The percentage of stack instances that can fail before the operation is considered failed. |
+| <code><a href="#cdk-stacksets.OperationPreferences.property.maxConcurrentCount">maxConcurrentCount</a></code> | <code>number</code> | The maximum number of stack instances that can be created or updated concurrently. |
+| <code><a href="#cdk-stacksets.OperationPreferences.property.maxConcurrentPercentage">maxConcurrentPercentage</a></code> | <code>number</code> | The maximum percentage of stack instances that can be created or updated concurrently. |
+| <code><a href="#cdk-stacksets.OperationPreferences.property.regionConcurrencyType">regionConcurrencyType</a></code> | <code><a href="#cdk-stacksets.RegionConcurrencyType">RegionConcurrencyType</a></code> | Whether to deploy multiple regions sequentially or in parallel. |
+| <code><a href="#cdk-stacksets.OperationPreferences.property.regionOrder">regionOrder</a></code> | <code>string[]</code> | The order in which to deploy the stack instances to the regions. |
 
 ---
 
@@ -1206,6 +1226,8 @@ public readonly failureToleranceCount: number;
 
 - *Type:* number
 
+The number of stack instances that can fail before the operation is considered failed.
+
 ---
 
 ##### `failureTolerancePercentage`<sup>Optional</sup> <a name="failureTolerancePercentage" id="cdk-stacksets.OperationPreferences.property.failureTolerancePercentage"></a>
@@ -1215,6 +1237,8 @@ public readonly failureTolerancePercentage: number;
 ```
 
 - *Type:* number
+
+The percentage of stack instances that can fail before the operation is considered failed.
 
 ---
 
@@ -1226,6 +1250,8 @@ public readonly maxConcurrentCount: number;
 
 - *Type:* number
 
+The maximum number of stack instances that can be created or updated concurrently.
+
 ---
 
 ##### `maxConcurrentPercentage`<sup>Optional</sup> <a name="maxConcurrentPercentage" id="cdk-stacksets.OperationPreferences.property.maxConcurrentPercentage"></a>
@@ -1236,6 +1262,8 @@ public readonly maxConcurrentPercentage: number;
 
 - *Type:* number
 
+The maximum percentage of stack instances that can be created or updated concurrently.
+
 ---
 
 ##### `regionConcurrencyType`<sup>Optional</sup> <a name="regionConcurrencyType" id="cdk-stacksets.OperationPreferences.property.regionConcurrencyType"></a>
@@ -1245,6 +1273,9 @@ public readonly regionConcurrencyType: RegionConcurrencyType;
 ```
 
 - *Type:* <a href="#cdk-stacksets.RegionConcurrencyType">RegionConcurrencyType</a>
+- *Default:* RegionConcurrencyType.SEQUENTIAL
+
+Whether to deploy multiple regions sequentially or in parallel.
 
 ---
 
@@ -1255,6 +1286,8 @@ public readonly regionOrder: string[];
 ```
 
 - *Type:* string[]
+
+The order in which to deploy the stack instances to the regions.
 
 ---
 
@@ -1519,7 +1552,7 @@ const stackSetProps: StackSetProps = { ... }
 | <code><a href="#cdk-stacksets.StackSetProps.property.deploymentType">deploymentType</a></code> | <code><a href="#cdk-stacksets.DeploymentType">DeploymentType</a></code> | The type of deployment for this StackSet. |
 | <code><a href="#cdk-stacksets.StackSetProps.property.description">description</a></code> | <code>string</code> | An optional description to add to the StackSet. |
 | <code><a href="#cdk-stacksets.StackSetProps.property.managedExecution">managedExecution</a></code> | <code>boolean</code> | If this is `true` then StackSets will perform non-conflicting operations concurrently and queue any conflicting operations. |
-| <code><a href="#cdk-stacksets.StackSetProps.property.operationPreferences">operationPreferences</a></code> | <code><a href="#cdk-stacksets.OperationPreferences">OperationPreferences</a></code> | *No description.* |
+| <code><a href="#cdk-stacksets.StackSetProps.property.operationPreferences">operationPreferences</a></code> | <code><a href="#cdk-stacksets.OperationPreferences">OperationPreferences</a></code> | The operation preferences for the StackSet. |
 | <code><a href="#cdk-stacksets.StackSetProps.property.stackSetName">stackSetName</a></code> | <code>string</code> | The name of the stack set. |
 
 ---
@@ -1594,7 +1627,7 @@ public readonly description: string;
 ```
 
 - *Type:* string
-- *Default:* no description
+- *Default:* none
 
 An optional description to add to the StackSet.
 
@@ -1625,6 +1658,11 @@ public readonly operationPreferences: OperationPreferences;
 ```
 
 - *Type:* <a href="#cdk-stacksets.OperationPreferences">OperationPreferences</a>
+
+The operation preferences for the StackSet.
+
+This allows you to control how the StackSet is deployed
+across the target accounts and regions.
 
 ---
 
@@ -1657,8 +1695,8 @@ const stackSetStackProps: StackSetStackProps = { ... }
 
 | **Name** | **Type** | **Description** |
 | --- | --- | --- |
-| <code><a href="#cdk-stacksets.StackSetStackProps.property.assetBucketPrefix">assetBucketPrefix</a></code> | <code>string</code> | *No description.* |
-| <code><a href="#cdk-stacksets.StackSetStackProps.property.assetBuckets">assetBuckets</a></code> | <code>aws-cdk-lib.aws_s3.IBucket[]</code> | A Bucket can be passed to store assets, enabling StackSetStack Asset support. |
+| <code><a href="#cdk-stacksets.StackSetStackProps.property.assetBucketPrefix">assetBucketPrefix</a></code> | <code>string</code> | The common prefix for the asset bucket names used by this StackSetStack. |
+| <code><a href="#cdk-stacksets.StackSetStackProps.property.assetBuckets">assetBuckets</a></code> | <code>aws-cdk-lib.aws_s3.IBucket[]</code> | An array of Buckets can be passed to store assets, enabling StackSetStack Asset support. |
 
 ---
 
@@ -1669,6 +1707,11 @@ public readonly assetBucketPrefix: string;
 ```
 
 - *Type:* string
+- *Default:* No Buckets provided and Assets will not be supported.
+
+The common prefix for the asset bucket names used by this StackSetStack.
+
+Required if `assetBuckets` is provided.
 
 ---
 
@@ -1679,9 +1722,12 @@ public readonly assetBuckets: IBucket[];
 ```
 
 - *Type:* aws-cdk-lib.aws_s3.IBucket[]
-- *Default:* No Bucket provided and Assets will not be supported.
+- *Default:* No Buckets provided and Assets will not be supported.
 
-A Bucket can be passed to store assets, enabling StackSetStack Asset support.
+An array of Buckets can be passed to store assets, enabling StackSetStack Asset support.
+
+One Bucket is required per target region. The name must be `${assetBucketPrefix}-<region>`, where
+`<region>` is the region targeted by the StackSet.
 
 ---
 
@@ -1827,8 +1873,8 @@ new StackSetStackSynthesizer(assetBuckets?: IBucket[], assetBucketPrefix?: strin
 
 | **Name** | **Type** | **Description** |
 | --- | --- | --- |
-| <code><a href="#cdk-stacksets.StackSetStackSynthesizer.Initializer.parameter.assetBuckets">assetBuckets</a></code> | <code>aws-cdk-lib.aws_s3.IBucket[]</code> | *No description.* |
-| <code><a href="#cdk-stacksets.StackSetStackSynthesizer.Initializer.parameter.assetBucketPrefix">assetBucketPrefix</a></code> | <code>string</code> | *No description.* |
+| <code><a href="#cdk-stacksets.StackSetStackSynthesizer.Initializer.parameter.assetBuckets">assetBuckets</a></code> | <code>aws-cdk-lib.aws_s3.IBucket[]</code> | An array of S3 buckets to use for storing assets. |
+| <code><a href="#cdk-stacksets.StackSetStackSynthesizer.Initializer.parameter.assetBucketPrefix">assetBucketPrefix</a></code> | <code>string</code> | The prefix to use for the asset bucket names. |
 
 ---
 
@@ -1836,11 +1882,15 @@ new StackSetStackSynthesizer(assetBuckets?: IBucket[], assetBucketPrefix?: strin
 
 - *Type:* aws-cdk-lib.aws_s3.IBucket[]
 
+An array of S3 buckets to use for storing assets.
+
 ---
 
 ##### `assetBucketPrefix`<sup>Optional</sup> <a name="assetBucketPrefix" id="cdk-stacksets.StackSetStackSynthesizer.Initializer.parameter.assetBucketPrefix"></a>
 
 - *Type:* string
+
+The prefix to use for the asset bucket names.
 
 ---
 
@@ -1936,6 +1986,8 @@ Synthesize the associated stack to the session.
 | --- | --- | --- |
 | <code><a href="#cdk-stacksets.StackSetStackSynthesizer.property.bootstrapQualifier">bootstrapQualifier</a></code> | <code>string</code> | The qualifier used to bootstrap this stack. |
 | <code><a href="#cdk-stacksets.StackSetStackSynthesizer.property.lookupRole">lookupRole</a></code> | <code>string</code> | The role used to lookup for this stack. |
+| <code><a href="#cdk-stacksets.StackSetStackSynthesizer.property.assetBucketPrefix">assetBucketPrefix</a></code> | <code>string</code> | The common prefix for the asset bucket names used by this StackSetStack. |
+| <code><a href="#cdk-stacksets.StackSetStackSynthesizer.property.assetBuckets">assetBuckets</a></code> | <code>aws-cdk-lib.aws_s3.IBucket[]</code> | An array of Buckets can be passed to store assets, enabling StackSetStack Asset support. |
 
 ---
 
@@ -1960,6 +2012,37 @@ public readonly lookupRole: string;
 - *Type:* string
 
 The role used to lookup for this stack.
+
+---
+
+##### `assetBucketPrefix`<sup>Optional</sup> <a name="assetBucketPrefix" id="cdk-stacksets.StackSetStackSynthesizer.property.assetBucketPrefix"></a>
+
+```typescript
+public readonly assetBucketPrefix: string;
+```
+
+- *Type:* string
+- *Default:* No Buckets provided and Assets will not be supported.
+
+The common prefix for the asset bucket names used by this StackSetStack.
+
+Required if `assetBuckets` is provided.
+
+---
+
+##### `assetBuckets`<sup>Optional</sup> <a name="assetBuckets" id="cdk-stacksets.StackSetStackSynthesizer.property.assetBuckets"></a>
+
+```typescript
+public readonly assetBuckets: IBucket[];
+```
+
+- *Type:* aws-cdk-lib.aws_s3.IBucket[]
+- *Default:* No Buckets provided and Assets will not be supported.
+
+An array of Buckets can be passed to store assets, enabling StackSetStack Asset support.
+
+One Bucket is required per target region. The name must be `${assetBucketPrefix}-<region>`, where
+`<region>` is the region targeted by the StackSet.
 
 ---
 
@@ -2100,7 +2183,7 @@ new StackSetTemplate()
 
 | **Name** | **Description** |
 | --- | --- |
-| <code><a href="#cdk-stacksets.StackSetTemplate.fromStackSetStack">fromStackSetStack</a></code> | *No description.* |
+| <code><a href="#cdk-stacksets.StackSetTemplate.fromStackSetStack">fromStackSetStack</a></code> | Creates a StackSetTemplate from a StackSetStack. |
 
 ---
 
@@ -2111,6 +2194,8 @@ import { StackSetTemplate } from 'cdk-stacksets'
 
 StackSetTemplate.fromStackSetStack(stack: StackSetStack)
 ```
+
+Creates a StackSetTemplate from a StackSetStack.
 
 ###### `stack`<sup>Required</sup> <a name="stack" id="cdk-stacksets.StackSetTemplate.fromStackSetStack.parameter.stack"></a>
 
@@ -2273,21 +2358,29 @@ a service managed stackset.
 
 ### RegionConcurrencyType <a name="RegionConcurrencyType" id="cdk-stacksets.RegionConcurrencyType"></a>
 
+The type of concurrency to use when deploying the StackSet to regions.
+
 #### Members <a name="Members" id="Members"></a>
 
 | **Name** | **Description** |
 | --- | --- |
-| <code><a href="#cdk-stacksets.RegionConcurrencyType.SEQUENTIAL">SEQUENTIAL</a></code> | *No description.* |
-| <code><a href="#cdk-stacksets.RegionConcurrencyType.PARALLEL">PARALLEL</a></code> | *No description.* |
+| <code><a href="#cdk-stacksets.RegionConcurrencyType.SEQUENTIAL">SEQUENTIAL</a></code> | Deploy the StackSet to regions sequentially in the order specified in {@link StackSetProps.operationPreferences.regionOrder }. |
+| <code><a href="#cdk-stacksets.RegionConcurrencyType.PARALLEL">PARALLEL</a></code> | Deploy the StackSet to all regions in parallel. |
 
 ---
 
 ##### `SEQUENTIAL` <a name="SEQUENTIAL" id="cdk-stacksets.RegionConcurrencyType.SEQUENTIAL"></a>
 
+Deploy the StackSet to regions sequentially in the order specified in {@link StackSetProps.operationPreferences.regionOrder }.
+
+This is the default behavior.
+
 ---
 
 
 ##### `PARALLEL` <a name="PARALLEL" id="cdk-stacksets.RegionConcurrencyType.PARALLEL"></a>
+
+Deploy the StackSet to all regions in parallel.
 
 ---
 
