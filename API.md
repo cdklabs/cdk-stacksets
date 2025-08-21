@@ -1553,6 +1553,7 @@ const stackSetProps: StackSetProps = { ... }
 | <code><a href="#cdk-stacksets.StackSetProps.property.description">description</a></code> | <code>string</code> | An optional description to add to the StackSet. |
 | <code><a href="#cdk-stacksets.StackSetProps.property.managedExecution">managedExecution</a></code> | <code>boolean</code> | If this is `true` then StackSets will perform non-conflicting operations concurrently and queue any conflicting operations. |
 | <code><a href="#cdk-stacksets.StackSetProps.property.operationPreferences">operationPreferences</a></code> | <code><a href="#cdk-stacksets.OperationPreferences">OperationPreferences</a></code> | The operation preferences for the StackSet. |
+| <code><a href="#cdk-stacksets.StackSetProps.property.parameters">parameters</a></code> | <code>{[ key: string ]: string}</code> | The input parameters for the stack set template. |
 | <code><a href="#cdk-stacksets.StackSetProps.property.stackSetName">stackSetName</a></code> | <code>string</code> | The name of the stack set. |
 
 ---
@@ -1663,6 +1664,18 @@ The operation preferences for the StackSet.
 
 This allows you to control how the StackSet is deployed
 across the target accounts and regions.
+
+---
+
+##### `parameters`<sup>Optional</sup> <a name="parameters" id="cdk-stacksets.StackSetProps.property.parameters"></a>
+
+```typescript
+public readonly parameters: {[ key: string ]: string};
+```
+
+- *Type:* {[ key: string ]: string}
+
+The input parameters for the stack set template.
 
 ---
 
