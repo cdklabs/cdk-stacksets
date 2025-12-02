@@ -16,7 +16,15 @@ class LambdaStackSet extends StackSetStack {
     new lambda.Function(this, 'Lambda', {
       runtime: lambda.Runtime.NODEJS_18_X,
       handler: 'index.handler',
-      code: lambda.Code.fromAsset(path.join(__dirname, 'lambda')),
+      code: lambda.Code.fromAsset(path.join(__dirname, 'lambda'), {
+        // Trigger bundling to ensure asset staging behaviour correctly interacts with bundling
+        bundling: {
+          image: lambda.Runtime.NODEJS_18_X.bundlingImage,
+          command: [
+            'bash', '-c', 'echo "fake" > /asset-output/manifest.json',
+          ],
+        },
+      }),
     });
 
     new lambda.Function(this, 'Lambda2', {
@@ -381,6 +389,34 @@ test('test lambda assets with one asset bucket', () => {
   const app = new App({
     context: {
       [cxapi.ASSET_RESOURCE_METADATA_ENABLED_CONTEXT]: true,
+    },
+  });
+  const stack = new Stack(app);
+  const lambdaStack = new LambdaStackSet(stack, 'LambdaStack', {
+    assetBuckets: [s3.Bucket.fromBucketName(stack, 'AssetBucket', 'integ-assets')],
+    assetBucketPrefix: 'prefix',
+  });
+
+  new StackSet(stack, 'StackSet', {
+    target: StackSetTarget.fromAccounts({
+      regions: ['us-east-1'],
+      accounts: ['11111111111'],
+      parameterOverrides: {
+        Param1: 'Value1',
+      },
+    }),
+    template: StackSetTemplate.fromStackSetStack(lambdaStack),
+    capabilities: [Capability.IAM, Capability.NAMED_IAM],
+  });
+
+  Template.fromStack(stack).resourceCountIs('Custom::CDKBucketDeployment', 1);
+});
+
+test('test lambda assets with bundling disabled', () => {
+  const app = new App({
+    context: {
+      [cxapi.ASSET_RESOURCE_METADATA_ENABLED_CONTEXT]: true,
+      [cxapi.BUNDLING_STACKS]: [],
     },
   });
   const stack = new Stack(app);
