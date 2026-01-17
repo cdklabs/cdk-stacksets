@@ -12,12 +12,11 @@ import {
   Names,
   Lazy,
   FileAssetPackaging,
-  App,
   Resource,
   Annotations,
   Fn,
 } from 'aws-cdk-lib';
-import { IBucket } from 'aws-cdk-lib/aws-s3';
+import { Bucket, IBucket } from 'aws-cdk-lib/aws-s3';
 import { BucketDeployment, Source } from 'aws-cdk-lib/aws-s3-deployment';
 import { Construct } from 'constructs';
 
@@ -52,6 +51,7 @@ export class StackSetStackSynthesizer extends StackSynthesizer {
    */
   readonly assetBucketPrefix?: string;
   private bucketDeployments: { [key: string]: AssetBucketDeploymentProperties };
+  private parentAssetBucket?: IBucket;
 
   /**
    * Creates a new StackSetStackSynthesizer.
@@ -82,16 +82,28 @@ export class StackSetStackSynthesizer extends StackSynthesizer {
       throw new Error('Asset filename is undefined');
     }
 
-    const outdir = App.of(this.boundStack)?.outdir ?? 'cdk.out';
-    const assetPath = `${outdir}/${asset.fileName}`;
+    const parentStack = (this.boundStack as StackSetStack)._getParentStack();
+
+    // Delegate to the parent stack's synthesizer to handle asset staging
+    const parentLocation = parentStack.synthesizer.addFileAsset(asset);
+
+    // Create a reference to the parent's asset bucket (lazily, once)
+    if (!this.parentAssetBucket) {
+      this.parentAssetBucket = Bucket.fromBucketName(
+        this.boundStack,
+        'ParentAssetBucket',
+        parentLocation.bucketName,
+      );
+    }
+
+    // Use Source.bucket() to reference the asset from S3 (avoids timing issue with local files)
+    const source = Source.bucket(this.parentAssetBucket, parentLocation.objectKey);
 
     for (const assetBucket of this.assetBuckets) {
       const index = this.assetBuckets.indexOf(assetBucket);
       const assetDeployment = this.bucketDeployments[assetBucket.bucketName];
 
       if (!assetDeployment.bucketDeployment) {
-        const parentStack = (this.boundStack as StackSetStack)._getParentStack();
-
         if (!Resource.isOwnedResource(assetDeployment.assetBucket)) {
           Annotations.of(parentStack).addWarning('[WARNING] Bucket Policy Permissions cannot be added to' +
               ' referenced Bucket. Please make sure your bucket has the correct permissions');
@@ -105,7 +117,7 @@ export class StackSetStackSynthesizer extends StackSynthesizer {
           parentStack,
           bucketDeploymentConstructName,
           {
-            sources: [Source.asset(assetPath)],
+            sources: [source],
             destinationBucket: assetDeployment.assetBucket,
             extract: false,
             prune: false,
@@ -114,7 +126,7 @@ export class StackSetStackSynthesizer extends StackSynthesizer {
 
         assetDeployment.bucketDeployment = bucketDeployment;
       } else {
-        assetDeployment.bucketDeployment.addSource(Source.asset(assetPath));
+        assetDeployment.bucketDeployment.addSource(source);
       }
     }
 
