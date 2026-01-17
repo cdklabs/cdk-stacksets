@@ -37,7 +37,7 @@ const app = new App({
   postCliContext: {
     // I don't know why this is needed, but If I don't have it I get
     // an error about undefined not being a list
-    '@aws-cdk/core:target-partitions': ['aws'],
+    '@aws-cdk/core:target-partitions': ['aws', 'aws-us-gov'],
   },
 });
 

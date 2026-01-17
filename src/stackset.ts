@@ -5,6 +5,7 @@ import {
   Lazy,
   Names,
   Resource,
+  Stack,
 } from 'aws-cdk-lib';
 import { Construct } from 'constructs';
 import { StackSetStack, fileAssetResourceNames } from './stackset-stack';
@@ -679,7 +680,13 @@ export class StackSet extends Resource implements IStackSet {
         effect: iam.Effect.ALLOW,
         actions: ['sts:AssumeRole'],
         resources: [
-          `arn:aws:iam::*:role/${deploymentTypeConfig.executionRoleName ?? 'AWSCloudFormationStackSetExecutionRole'}`,
+          Stack.of(this).formatArn({
+            service: 'iam',
+            region: '',
+            account: '*',
+            resource: 'role',
+            resourceName: deploymentTypeConfig.executionRoleName ?? 'AWSCloudFormationStackSetExecutionRole',
+          }),
         ],
       }));
     }
@@ -749,7 +756,7 @@ export class StackSet extends Resource implements IStackSet {
       const disabledPrincipals: iam.IPrincipal[] = [];
       targetConfig.regions.forEach(region => {
         if (!ENABLED_REGIONS.includes(region)) {
-          disabledPrincipals.push(new iam.ServicePrincipal(`cloudformation.${region}.amazonaws.com`));
+          disabledPrincipals.push(new iam.ServicePrincipal(`cloudformation.${region}.${Stack.of(this).urlSuffix}`));
         }
       });
       if (disabledPrincipals.length > 0) {

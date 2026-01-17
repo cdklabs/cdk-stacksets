@@ -163,6 +163,7 @@ test('self managed stackset with disabled regions', () => {
       },
     }],
   });
+  // Service principal now uses partition-aware URL suffix
   Template.fromStack(stack).hasResourceProperties('AWS::IAM::Role', {
     AssumeRolePolicyDocument: {
       Statement: [
@@ -174,7 +175,15 @@ test('self managed stackset with disabled regions', () => {
         {
           Effect: 'Allow',
           Principal: {
-            Service: 'cloudformation.af-south-1.amazonaws.com',
+            Service: {
+              'Fn::Join': [
+                '',
+                [
+                  'cloudformation.af-south-1.',
+                  { Ref: 'AWS::URLSuffix' },
+                ],
+              ],
+            },
           },
           Action: 'sts:AssumeRole',
         },
@@ -475,5 +484,159 @@ test('passes operation preferences', () => {
         Accounts: ['11111111111'],
       },
     }],
+  });
+});
+
+test('self managed stackset uses partition-aware ARN for execution role', () => {
+  const app = new App();
+  const stack = new Stack(app);
+
+  new StackSet(stack, 'StackSet', {
+    target: StackSetTarget.fromAccounts({
+      regions: ['us-east-1'],
+      accounts: ['11111111111'],
+    }),
+    template: StackSetTemplate.fromStackSetStack(new StackSetStack(stack, 'Stack')),
+  });
+
+  // For env-agnostic stacks, formatArn produces a Fn::Join with AWS::Partition
+  Template.fromStack(stack).hasResourceProperties('AWS::IAM::Policy', {
+    PolicyDocument: {
+      Statement: [
+        {
+          Effect: 'Allow',
+          Action: 'sts:AssumeRole',
+          Resource: {
+            'Fn::Join': [
+              '',
+              [
+                'arn:',
+                { Ref: 'AWS::Partition' },
+                ':iam::*:role/AWSCloudFormationStackSetExecutionRole',
+              ],
+            ],
+          },
+        },
+      ],
+    },
+  });
+});
+
+test('self managed stackset with custom execution role name uses partition-aware ARN', () => {
+  const app = new App();
+  const stack = new Stack(app);
+
+  new StackSet(stack, 'StackSet', {
+    target: StackSetTarget.fromAccounts({
+      regions: ['us-east-1'],
+      accounts: ['11111111111'],
+    }),
+    template: StackSetTemplate.fromStackSetStack(new StackSetStack(stack, 'Stack')),
+    deploymentType: DeploymentType.selfManaged({
+      executionRoleName: 'CustomExecutionRole',
+    }),
+  });
+
+  Template.fromStack(stack).hasResourceProperties('AWS::IAM::Policy', {
+    PolicyDocument: {
+      Statement: [
+        {
+          Effect: 'Allow',
+          Action: 'sts:AssumeRole',
+          Resource: {
+            'Fn::Join': [
+              '',
+              [
+                'arn:',
+                { Ref: 'AWS::Partition' },
+                ':iam::*:role/CustomExecutionRole',
+              ],
+            ],
+          },
+        },
+      ],
+    },
+  });
+});
+
+test('self managed stackset with disabled regions uses partition-aware URL suffix', () => {
+  const app = new App();
+  const stack = new Stack(app);
+
+  new StackSet(stack, 'StackSet', {
+    target: StackSetTarget.fromAccounts({
+      regions: ['us-east-1', 'af-south-1'],
+      accounts: ['11111111111'],
+    }),
+    template: StackSetTemplate.fromStackSetStack(new StackSetStack(stack, 'Stack')),
+  });
+
+  // For env-agnostic stacks, urlSuffix produces AWS::URLSuffix reference
+  Template.fromStack(stack).hasResourceProperties('AWS::IAM::Role', {
+    AssumeRolePolicyDocument: {
+      Statement: [
+        {
+          Effect: 'Allow',
+          Principal: { Service: 'cloudformation.amazonaws.com' },
+          Action: 'sts:AssumeRole',
+        },
+        {
+          Effect: 'Allow',
+          Principal: {
+            Service: {
+              'Fn::Join': [
+                '',
+                [
+                  'cloudformation.af-south-1.',
+                  { Ref: 'AWS::URLSuffix' },
+                ],
+              ],
+            },
+          },
+          Action: 'sts:AssumeRole',
+        },
+      ],
+    },
+  });
+});
+
+test('GovCloud partition - self managed stackset with specific environment', () => {
+  const app = new App();
+  const stack = new Stack(app, 'TestStack', {
+    env: {
+      account: '111111111111',
+      region: 'us-gov-west-1',
+    },
+  });
+
+  new StackSet(stack, 'StackSet', {
+    target: StackSetTarget.fromAccounts({
+      regions: ['us-gov-west-1'],
+      accounts: ['11111111111'],
+    }),
+    template: StackSetTemplate.fromStackSetStack(new StackSetStack(stack, 'Stack')),
+  });
+
+  // Verify that the ARN uses AWS::Partition which will correctly resolve to aws-us-gov at deployment time
+  // CDK's formatArn produces Fn::Join with AWS::Partition reference even with specific env
+  Template.fromStack(stack).hasResourceProperties('AWS::IAM::Policy', {
+    PolicyDocument: {
+      Statement: [
+        {
+          Effect: 'Allow',
+          Action: 'sts:AssumeRole',
+          Resource: {
+            'Fn::Join': [
+              '',
+              [
+                'arn:',
+                { Ref: 'AWS::Partition' },
+                ':iam::*:role/AWSCloudFormationStackSetExecutionRole',
+              ],
+            ],
+          },
+        },
+      ],
+    },
   });
 });

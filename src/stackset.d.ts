@@ -1,0 +1,409 @@
+import { aws_iam as iam, IResource, Resource } from 'aws-cdk-lib';
+import { Construct } from 'constructs';
+import { StackSetStack } from './stackset-stack';
+/**
+ * Represents a StackSet CloudFormation template
+ */
+export declare abstract class StackSetTemplate {
+    /**
+     * Creates a StackSetTemplate from a StackSetStack
+     *
+     * @param stack the stack to use as the base for the stackset template
+     * @returns StackSetTemplate
+     */
+    static fromStackSetStack(stack: StackSetStack): StackSetTemplate;
+    /**
+     * The S3 URL of the StackSet template
+     */
+    abstract readonly templateUrl: string;
+}
+/**
+ * CloudFormation stack parameters
+ */
+export type StackSetParameter = {
+    [key: string]: string;
+};
+/**
+ * Common options for deploying a StackSet to a target
+ */
+export interface TargetOptions {
+    /**
+     * A list of regions the Stack should be deployed to.
+     *
+     * If {@link StackSetProps.operationPreferences.regionOrder} is specified
+     * then the StackSet will be deployed sequentially otherwise it will be
+     * deployed to all regions in parallel.
+     */
+    readonly regions: string[];
+    /**
+     * Parameter overrides that should be applied to only this target
+     *
+     * @default - use parameter overrides specified in {@link StackSetProps.parameterOverrides}
+     */
+    readonly parameterOverrides?: StackSetParameter;
+}
+/**
+ * Options for deploying a StackSet to a set of Organizational Units (OUs)
+ */
+export interface OrganizationsTargetOptions extends TargetOptions {
+    /**
+     * A list of organizational unit ids to deploy to. The StackSet will
+     * deploy the provided Stack template to all accounts in the OU.
+     * This can be further filtered by specifying either `additionalAccounts`
+     * or `excludeAccounts`.
+     *
+     * If the `deploymentType` is specified with `autoDeployEnabled` then
+     * the StackSet will automatically deploy the Stack to new accounts as they
+     * are added to the specified `organizationalUnits`
+     */
+    readonly organizationalUnits: string[];
+    /**
+     * A list of additional AWS accounts to deploy the StackSet to. This can be
+     * used to deploy the StackSet to additional AWS accounts that exist in a
+     * different OU than what has been provided in `organizationalUnits`
+     *
+     * @default - Stacks will only be deployed to accounts that exist in the
+     * specified organizationalUnits
+     */
+    readonly additionalAccounts?: string[];
+    /**
+     * A list of AWS accounts to exclude from deploying the StackSet to. This can
+     * be useful if there are accounts that exist in an OU that is provided in
+     * `organizationalUnits`, but you do not want the StackSet to be deployed.
+     *
+     * @default - Stacks will be deployed to all accounts that exist in the OUs
+     * specified in the organizationUnits property
+     */
+    readonly excludeAccounts?: string[];
+}
+/**
+ * Options for deploying a StackSet to a list of AWS accounts
+ */
+export interface AccountsTargetOptions extends TargetOptions {
+    /**
+     * A list of AWS accounts to deploy the StackSet to
+     */
+    readonly accounts: string[];
+}
+/**
+ * Which organizational units and/or accounts the stack set
+ * should be deployed to.
+ *
+ * `fromAccounts` can be used to deploy the stack set to specific AWS accounts
+ *
+ * `fromOrganizationalUnits` can be used to deploy the stack set to specific organizational units
+ * and optionally include additional accounts from other OUs, or exclude accounts from the specified
+ * OUs
+ *
+ * @example
+ * // deploy to specific accounts
+ * StackSetTarget.fromAccounts({
+ *   accounts: ['11111111111', '22222222222'],
+ *   regions: ['us-east-1', 'us-east-2'],
+ * });
+ *
+ * // deploy to OUs and 1 additional account
+ * StackSetTarget.fromOrganizationalUnits({
+ *   regions: ['us-east-1', 'us-east-2'],
+ *   organizationalUnits: ['ou-1111111', 'ou-2222222'],
+ *   additionalAccounts: ['33333333333'],
+ * });
+ *
+ * // deploy to OUs but exclude 1 account
+ * StackSetTarget.fromOrganizationalUnits({
+ *   regions: ['us-east-1', 'us-east-2'],
+ *   organizationalUnits: ['ou-1111111', 'ou-2222222'],
+ *   excludeAccounts: ['11111111111'],
+ * });
+ */
+export declare abstract class StackSetTarget {
+    /**
+     * Deploy the StackSet to a list of accounts
+     *
+     * @example
+     * StackSetTarget.fromAccounts({
+     *   accounts: ['11111111111', '22222222222'],
+     *   regions: ['us-east-1', 'us-east-2'],
+     * });
+     */
+    static fromAccounts(options: AccountsTargetOptions): StackSetTarget;
+    /**
+     * Deploy the StackSet to a list of AWS Organizations organizational units.
+     *
+     * You can optionally include/exclude individual AWS accounts.
+     *
+     * @example
+     * StackSetTarget.fromOrganizationalUnits({
+     *   regions: ['us-east-1', 'us-east-2'],
+     *   organizationalUnits: ['ou-1111111', 'ou-2222222'],
+     * });
+     */
+    static fromOrganizationalUnits(options: OrganizationsTargetOptions): StackSetTarget;
+}
+/**
+ * Options for StackSets that are managed by AWS Organizations.
+ */
+export interface ServiceManagedOptions {
+    /**
+     * Whether or not the StackSet should automatically create/remove the Stack
+     * from AWS accounts that are added/removed from an organizational unit.
+     *
+     * This has no effect if {@link StackSetTarget.fromAccounts} is used
+     *
+     * @default true
+     */
+    readonly autoDeployEnabled?: boolean;
+    /**
+     * Whether stacks should be removed from AWS accounts that are removed
+     * from an organizational unit.
+     *
+     * By default the stack will be retained (not deleted)
+     *
+     * This has no effect if {@link StackSetTarget.fromAccounts} is used
+     *
+     * @default true
+     */
+    readonly autoDeployRetainStacks?: boolean;
+    /**
+     * Whether or not the account this StackSet is deployed from is the delegated admin account.
+     *
+     * Set this to `false` if you are using the AWS Organizations management account instead.
+     *
+     * @see https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/stacksets-orgs-delegated-admin.html
+     *
+     * @default true
+     */
+    readonly delegatedAdmin?: boolean;
+}
+/**
+ * Options for StackSets that are not managed by AWS Organizations.
+ */
+export interface SelfManagedOptions {
+    /**
+     * The name of the stackset execution role that already exists in each target AWS account.
+     * This role must be configured with a trust policy that allows `sts:AssumeRole` from the `adminRole`.
+     *
+     * In addition this role must have the necessary permissions to manage the resources created by the stackset.
+     *
+     * @see https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/stacksets-prereqs-self-managed.html#stacksets-prereqs-accountsetup
+     *
+     * @default - AWSCloudFormationStackSetExecutionRole
+     */
+    readonly executionRoleName?: string;
+    /**
+     * The admin role that CloudFormation will use to perform stackset operations.
+     * This role should only have permissions to be assumed by the CloudFormation service
+     * and to assume the execution role in each individual account.
+     *
+     * When you create the execution role it must have an assume role policy statement which
+     * allows `sts:AssumeRole` from this admin role.
+     *
+     * To grant specific users/groups access to use this role to deploy stacksets they must have
+     * a policy that allows `iam:GetRole` & `iam:PassRole` on this role resource.
+     *
+     * @default - a default role will be created
+     */
+    readonly adminRole?: iam.IRole;
+}
+export declare abstract class DeploymentType {
+    /**
+     * StackSets deployed using service managed permissions allow you to deploy
+     * StackSet instances to accounts within an AWS Organization. Using this module
+     * AWS Organizations will handle creating the necessary IAM roles and setting up the
+     * required permissions.
+     *
+     * This model also allows you to enable automated deployments which allows the StackSet
+     * to be automatically deployed to new accounts that are added to your organization in the future.
+     *
+     * This model requires you to be operating in either the AWS Organizations management account
+     * or the delegated administrator account
+     *
+     * @see https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/stacksets-concepts.html#stacksets-concepts-stackset-permission-models
+     */
+    static serviceManaged(options?: ServiceManagedOptions): DeploymentType;
+    /**
+     * StackSets deployed using the self managed model require you to create the necessary
+     * IAM roles in the source and target AWS accounts and to setup the required IAM permissions.
+     *
+     * Using this model you can only deploy to AWS accounts that have the necessary IAM roles/permissions
+     * pre-created.
+     */
+    static selfManaged(options?: SelfManagedOptions): DeploymentType;
+}
+export interface StackSetProps {
+    /**
+     * Which accounts/OUs and regions to deploy the StackSet to
+     */
+    readonly target: StackSetTarget;
+    /**
+     * The Stack that will be deployed to the target
+     */
+    readonly template: StackSetTemplate;
+    /**
+     * The name of the stack set
+     *
+     * @default - CloudFormation generated name
+     */
+    readonly stackSetName?: string;
+    /**
+     * An optional description to add to the StackSet
+     *
+     * @default - none
+     */
+    readonly description?: string;
+    /**
+     * The type of deployment for this StackSet. The deployment can either be managed by
+     * AWS Organizations (i.e. DeploymentType.serviceManaged()) or by the AWS account that
+     * the StackSet is deployed from.
+     *
+     * In order to use DeploymentType.serviceManaged() the account needs to either be the
+     * organizations's management account or a delegated administrator account.
+     *
+     * @default DeploymentType.selfManaged()
+     */
+    readonly deploymentType?: DeploymentType;
+    /**
+     * If this is `true` then StackSets will perform non-conflicting operations concurrently
+     * and queue any conflicting operations.
+     *
+     * This means that you can submit more than one operation per StackSet and they will be
+     * executed concurrently. For example you can submit a single request that updates existing
+     * stack instances *and* creates new stack instances. Any conflicting operations will be queued
+     * for immediate processing once the conflict is resolved.
+     *
+     * @default true
+     */
+    readonly managedExecution?: boolean;
+    /**
+     * The operation preferences for the StackSet.
+     *
+     * This allows you to control how the StackSet is deployed
+     * across the target accounts and regions.
+     */
+    readonly operationPreferences?: OperationPreferences;
+    /**
+     * The input parameters for the stack set template.
+     */
+    readonly parameters?: StackSetParameter;
+    /**
+     * Specify a list of capabilities required by your stackset.
+     *
+     * StackSets that contains certain functionality require an explicit acknowledgement
+     * that the stack contains these capabilities.
+     *
+     * If you deploy a stack that requires certain capabilities and they are
+     * not specified, the deployment will fail with a `InsufficientCapabilities` error.
+     *
+     * @default - no specific capabilities
+     */
+    readonly capabilities?: Capability[];
+}
+/**
+ * StackSets that contains certain functionality require an explicit acknowledgement
+ * that the stack contains these capabilities.
+ */
+export declare enum Capability {
+    /**
+     * Required if the stack contains IAM resources with custom names
+     */
+    NAMED_IAM = "CAPABILITY_NAMED_IAM",
+    /**
+     * Required if the stack contains IAM resources. If the IAM resources
+     * also have custom names then specify {@link Capability.NAMED_IAM} instead.
+     */
+    IAM = "CAPABILITY_IAM",
+    /**
+     * Required if the stack contains macros. Not supported if deploying
+     * a service managed stackset.
+     */
+    AUTO_EXPAND = "CAPABILITY_AUTO_EXPAND"
+}
+/**
+ * CloudFormation operation preferences.
+ *
+ * This maps to `aws_cloudformation.CfnStackSet.OperationPreferencesProperty`.
+ */
+export interface OperationPreferences {
+    /**
+     * The number of stack instances that can fail before the operation is considered failed.
+     */
+    readonly failureToleranceCount?: number;
+    /**
+     * The percentage of stack instances that can fail before the operation is considered failed.
+     */
+    readonly failureTolerancePercentage?: number;
+    /**
+     * The maximum number of stack instances that can be created or updated concurrently.
+     */
+    readonly maxConcurrentCount?: number;
+    /**
+     * The maximum percentage of stack instances that can be created or updated concurrently.
+     */
+    readonly maxConcurrentPercentage?: number;
+    /**
+     * Whether to deploy multiple regions sequentially or in parallel.
+     *
+     * @enum {RegionConcurrencyType}
+     * @default RegionConcurrencyType.SEQUENTIAL
+     */
+    readonly regionConcurrencyType?: RegionConcurrencyType;
+    /**
+     * The order in which to deploy the stack instances to the regions.
+     */
+    readonly regionOrder?: string[];
+}
+/**
+ * The type of concurrency to use when deploying the StackSet to regions.
+ */
+export declare enum RegionConcurrencyType {
+    /**
+     * Deploy the StackSet to regions sequentially in the order specified in
+     * {@link StackSetProps.operationPreferences.regionOrder}.
+     *
+     * This is the default behavior.
+     */
+    SEQUENTIAL = "SEQUENTIAL",
+    /**
+     * Deploy the StackSet to all regions in parallel.
+     */
+    PARALLEL = "PARALLEL"
+}
+/**
+ * Represents a CloudFormation StackSet
+ */
+export interface IStackSet extends IResource {
+    /**
+     * Only available on self managed stacksets.
+     *
+     * The admin role that CloudFormation will use to perform stackset operations.
+     * This role should only have permissions to be assumed by the CloudFormation service
+     * and to assume the execution role in each individual account.
+     *
+     * When you create the execution role it must have an assume role policy statement which
+     * allows `sts:AssumeRole` from this admin role.
+     *
+     * To grant specific users/groups access to use this role to deploy stacksets they must have
+     * a policy that allows `iam:GetRole` & `iam:PassRole` on this role resource.
+     */
+    readonly role?: iam.IRole;
+}
+export declare class StackSet extends Resource implements IStackSet {
+    private readonly stackInstances;
+    private readonly _role?;
+    private readonly permissionModel;
+    /**
+     * Creates a new StackSet.
+     *
+     * @param scope The scope in which to define this StackSet.
+     * @param id The ID of the StackSet.
+     * @param props The properties of the StackSet.
+     */
+    constructor(scope: Construct, id: string, props: StackSetProps);
+    get role(): iam.IRole | undefined;
+    /**
+     * Adds a target to the StackSet.
+     *
+     * @param target the target to add to the StackSet
+     */
+    addTarget(target: StackSetTarget): void;
+}
