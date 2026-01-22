@@ -105,24 +105,22 @@ export class StackSetStackSynthesizer extends StackSynthesizer {
 
       if (!assetDeployment.bucketDeployment) {
         if (!Resource.isOwnedResource(assetDeployment.assetBucket)) {
-          Annotations.of(parentStack).addWarning('[WARNING] Bucket Policy Permissions cannot be added to' +
-              ' referenced Bucket. Please make sure your bucket has the correct permissions');
+          Annotations.of(parentStack).addWarning(
+            '[WARNING] Bucket Policy Permissions cannot be added to' +
+              ' referenced Bucket. Please make sure your bucket has the correct permissions',
+          );
         }
 
         const bucketDeploymentConstructName = `${Names.uniqueId(this.boundStack)}-AssetBucketDeployment-${index}`;
 
         fileAssetResourceNames.push(bucketDeploymentConstructName);
 
-        const bucketDeployment = new BucketDeployment(
-          parentStack,
-          bucketDeploymentConstructName,
-          {
-            sources: [source],
-            destinationBucket: assetDeployment.assetBucket,
-            extract: false,
-            prune: false,
-          },
-        );
+        const bucketDeployment = new BucketDeployment(parentStack, bucketDeploymentConstructName, {
+          sources: [source],
+          destinationBucket: assetDeployment.assetBucket,
+          extract: false,
+          prune: false,
+        });
 
         assetDeployment.bucketDeployment = bucketDeployment;
       } else {
@@ -130,7 +128,9 @@ export class StackSetStackSynthesizer extends StackSynthesizer {
       }
     }
 
-    const bucketName = Fn.join('-', [this.assetBucketPrefix, this.boundStack.region]);
+    // Use Fn.ref('AWS::Region') so the bucket name resolves dynamically at deployment time
+    // in each target region, not at synthesis time (which would hardcode the parent stack's region)
+    const bucketName = Fn.join('-', [this.assetBucketPrefix, Fn.ref('AWS::Region')]);
 
     const assetFileBaseName = path.basename(asset.fileName);
     const s3Filename = assetFileBaseName.split('.')[1] + '.zip';

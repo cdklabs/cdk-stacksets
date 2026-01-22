@@ -1,12 +1,17 @@
 import path from 'path';
-import {
-  App, Stack, aws_lambda as lambda, aws_s3 as s3,
-} from 'aws-cdk-lib';
+import { App, Stack, aws_lambda as lambda, aws_s3 as s3 } from 'aws-cdk-lib';
 
 import { Template } from 'aws-cdk-lib/assertions';
 import * as cxapi from 'aws-cdk-lib/cx-api';
 import { Construct } from 'constructs';
-import { Capability, DeploymentType, RegionConcurrencyType, StackSet, StackSetTarget, StackSetTemplate } from '../src/stackset';
+import {
+  Capability,
+  DeploymentType,
+  RegionConcurrencyType,
+  StackSet,
+  StackSetTarget,
+  StackSetTemplate,
+} from '../src/stackset';
 import { StackSetStack, StackSetStackProps } from '../src/stackset-stack';
 
 class LambdaStackSet extends StackSetStack {
@@ -46,14 +51,17 @@ test('default', () => {
     ManagedExecution: { Active: true },
     PermissionModel: 'SELF_MANAGED',
     TemplateURL: {
-      'Fn::Sub': 'https://s3.${AWS::Region}.${AWS::URLSuffix}/cdk-hnb659fds-assets-${AWS::AccountId}-${AWS::Region}/44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a.json',
+      'Fn::Sub':
+        'https://s3.${AWS::Region}.${AWS::URLSuffix}/cdk-hnb659fds-assets-${AWS::AccountId}-${AWS::Region}/44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a.json',
     },
-    StackInstancesGroup: [{
-      Regions: ['us-east-1'],
-      DeploymentTargets: {
-        Accounts: ['11111111111'],
+    StackInstancesGroup: [
+      {
+        Regions: ['us-east-1'],
+        DeploymentTargets: {
+          Accounts: ['11111111111'],
+        },
       },
-    }],
+    ],
   });
 });
 
@@ -76,19 +84,24 @@ test('stackset with parameters', () => {
   Template.fromStack(stack).hasResourceProperties('AWS::CloudFormation::StackSet', {
     ManagedExecution: { Active: true },
     PermissionModel: 'SELF_MANAGED',
-    Parameters: [{
-      ParameterKey: 'Param1',
-      ParameterValue: 'Value1',
-    }, {
-      ParameterKey: 'Param2',
-      ParameterValue: 'Value2',
-    }],
-    StackInstancesGroup: [{
-      Regions: ['us-east-1'],
-      DeploymentTargets: {
-        Accounts: ['11111111111'],
+    Parameters: [
+      {
+        ParameterKey: 'Param1',
+        ParameterValue: 'Value1',
       },
-    }],
+      {
+        ParameterKey: 'Param2',
+        ParameterValue: 'Value2',
+      },
+    ],
+    StackInstancesGroup: [
+      {
+        Regions: ['us-east-1'],
+        DeploymentTargets: {
+          Accounts: ['11111111111'],
+        },
+      },
+    ],
   });
 });
 
@@ -112,14 +125,17 @@ test('self managed stackset creates adminRole by default', () => {
     PermissionModel: 'SELF_MANAGED',
     AdministrationRoleARN: { 'Fn::GetAtt': ['AdminRole38563C57', 'Arn'] },
     TemplateURL: {
-      'Fn::Sub': 'https://s3.${AWS::Region}.${AWS::URLSuffix}/cdk-hnb659fds-assets-${AWS::AccountId}-${AWS::Region}/44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a.json',
+      'Fn::Sub':
+        'https://s3.${AWS::Region}.${AWS::URLSuffix}/cdk-hnb659fds-assets-${AWS::AccountId}-${AWS::Region}/44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a.json',
     },
-    StackInstancesGroup: [{
-      Regions: ['us-east-1'],
-      DeploymentTargets: {
-        Accounts: ['11111111111'],
+    StackInstancesGroup: [
+      {
+        Regions: ['us-east-1'],
+        DeploymentTargets: {
+          Accounts: ['11111111111'],
+        },
       },
-    }],
+    ],
   });
   Template.fromStack(stack).hasResourceProperties('AWS::IAM::Role', {
     AssumeRolePolicyDocument: {
@@ -154,14 +170,17 @@ test('self managed stackset with disabled regions', () => {
     PermissionModel: 'SELF_MANAGED',
     AdministrationRoleARN: { 'Fn::GetAtt': ['AdminRole38563C57', 'Arn'] },
     TemplateURL: {
-      'Fn::Sub': 'https://s3.${AWS::Region}.${AWS::URLSuffix}/cdk-hnb659fds-assets-${AWS::AccountId}-${AWS::Region}/44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a.json',
+      'Fn::Sub':
+        'https://s3.${AWS::Region}.${AWS::URLSuffix}/cdk-hnb659fds-assets-${AWS::AccountId}-${AWS::Region}/44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a.json',
     },
-    StackInstancesGroup: [{
-      Regions: ['us-east-1', 'af-south-1'],
-      DeploymentTargets: {
-        Accounts: ['11111111111'],
+    StackInstancesGroup: [
+      {
+        Regions: ['us-east-1', 'af-south-1'],
+        DeploymentTargets: {
+          Accounts: ['11111111111'],
+        },
       },
-    }],
+    ],
   });
   // Service principal now uses partition-aware URL suffix
   Template.fromStack(stack).hasResourceProperties('AWS::IAM::Role', {
@@ -176,13 +195,7 @@ test('self managed stackset with disabled regions', () => {
           Effect: 'Allow',
           Principal: {
             Service: {
-              'Fn::Join': [
-                '',
-                [
-                  'cloudformation.af-south-1.',
-                  { Ref: 'AWS::URLSuffix' },
-                ],
-              ],
+              'Fn::Join': ['', ['cloudformation.af-south-1.', { Ref: 'AWS::URLSuffix' }]],
             },
           },
           Action: 'sts:AssumeRole',
@@ -217,19 +230,24 @@ test('service managed stackset', () => {
       RetainStacksOnAccountRemoval: true,
     },
     TemplateURL: {
-      'Fn::Sub': 'https://s3.${AWS::Region}.${AWS::URLSuffix}/cdk-hnb659fds-assets-${AWS::AccountId}-${AWS::Region}/44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a.json',
+      'Fn::Sub':
+        'https://s3.${AWS::Region}.${AWS::URLSuffix}/cdk-hnb659fds-assets-${AWS::AccountId}-${AWS::Region}/44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a.json',
     },
-    StackInstancesGroup: [{
-      ParameterOverrides: [{
-        ParameterKey: 'Param1',
-        ParameterValue: 'Value1',
-      }],
-      Regions: ['us-east-1'],
-      DeploymentTargets: {
-        Accounts: ['11111111111'],
-        AccountFilterType: 'INTERSECTION',
+    StackInstancesGroup: [
+      {
+        ParameterOverrides: [
+          {
+            ParameterKey: 'Param1',
+            ParameterValue: 'Value1',
+          },
+        ],
+        Regions: ['us-east-1'],
+        DeploymentTargets: {
+          Accounts: ['11111111111'],
+          AccountFilterType: 'INTERSECTION',
+        },
       },
-    }],
+    ],
   });
 });
 
@@ -260,15 +278,18 @@ test('service managed stackset with options', () => {
       Enabled: false,
     },
     TemplateURL: {
-      'Fn::Sub': 'https://s3.${AWS::Region}.${AWS::URLSuffix}/cdk-hnb659fds-assets-${AWS::AccountId}-${AWS::Region}/44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a.json',
+      'Fn::Sub':
+        'https://s3.${AWS::Region}.${AWS::URLSuffix}/cdk-hnb659fds-assets-${AWS::AccountId}-${AWS::Region}/44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a.json',
     },
-    StackInstancesGroup: [{
-      Regions: ['us-east-1'],
-      DeploymentTargets: {
-        Accounts: ['11111111111'],
-        AccountFilterType: 'INTERSECTION',
+    StackInstancesGroup: [
+      {
+        Regions: ['us-east-1'],
+        DeploymentTargets: {
+          Accounts: ['11111111111'],
+          AccountFilterType: 'INTERSECTION',
+        },
       },
-    }],
+    ],
   });
 });
 
@@ -322,16 +343,18 @@ test('fromOrganizations default', () => {
       Enabled: false,
     },
     TemplateURL: {
-      'Fn::Sub': 'https://s3.${AWS::Region}.${AWS::URLSuffix}/cdk-hnb659fds-assets-${AWS::AccountId}-${AWS::Region}/44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a.json',
+      'Fn::Sub':
+        'https://s3.${AWS::Region}.${AWS::URLSuffix}/cdk-hnb659fds-assets-${AWS::AccountId}-${AWS::Region}/44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a.json',
     },
-    StackInstancesGroup: [{
-      Regions: ['us-east-1'],
-      DeploymentTargets: {
-        AccountFilterType: 'NONE',
+    StackInstancesGroup: [
+      {
+        Regions: ['us-east-1'],
+        DeploymentTargets: {
+          AccountFilterType: 'NONE',
+        },
       },
-    }],
+    ],
   });
-
 });
 
 test('has IAM capabilities', () => {
@@ -354,18 +377,18 @@ test('has IAM capabilities', () => {
     ManagedExecution: { Active: true },
     PermissionModel: 'SELF_MANAGED',
     TemplateURL: {
-      'Fn::Sub': 'https://s3.${AWS::Region}.${AWS::URLSuffix}/cdk-hnb659fds-assets-${AWS::AccountId}-${AWS::Region}/44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a.json',
+      'Fn::Sub':
+        'https://s3.${AWS::Region}.${AWS::URLSuffix}/cdk-hnb659fds-assets-${AWS::AccountId}-${AWS::Region}/44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a.json',
     },
-    StackInstancesGroup: [{
-      Regions: ['us-east-1'],
-      DeploymentTargets: {
-        Accounts: ['11111111111'],
+    StackInstancesGroup: [
+      {
+        Regions: ['us-east-1'],
+        DeploymentTargets: {
+          Accounts: ['11111111111'],
+        },
       },
-    }],
-    Capabilities: [
-      'CAPABILITY_IAM',
-      'CAPABILITY_NAMED_IAM',
     ],
+    Capabilities: ['CAPABILITY_IAM', 'CAPABILITY_NAMED_IAM'],
   });
 });
 
@@ -421,7 +444,10 @@ test('test lambda assets with two asset buckets', () => {
   });
   const stack = new Stack(app);
   const lambdaStack = new LambdaStackSet(stack, 'LambdaStack', {
-    assetBuckets: [s3.Bucket.fromBucketName(stack, 'AssetBucket', 'integ-assets'), s3.Bucket.fromBucketName(stack, 'AssetBucket2', 'integ-assets2')],
+    assetBuckets: [
+      s3.Bucket.fromBucketName(stack, 'AssetBucket', 'integ-assets'),
+      s3.Bucket.fromBucketName(stack, 'AssetBucket2', 'integ-assets2'),
+    ],
     assetBucketPrefix: 'prefix',
   });
 
@@ -476,14 +502,17 @@ test('passes operation preferences', () => {
       FailureToleranceCount: 1,
     },
     TemplateURL: {
-      'Fn::Sub': 'https://s3.${AWS::Region}.${AWS::URLSuffix}/cdk-hnb659fds-assets-${AWS::AccountId}-${AWS::Region}/44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a.json',
+      'Fn::Sub':
+        'https://s3.${AWS::Region}.${AWS::URLSuffix}/cdk-hnb659fds-assets-${AWS::AccountId}-${AWS::Region}/44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a.json',
     },
-    StackInstancesGroup: [{
-      Regions: ['us-east-1'],
-      DeploymentTargets: {
-        Accounts: ['11111111111'],
+    StackInstancesGroup: [
+      {
+        Regions: ['us-east-1'],
+        DeploymentTargets: {
+          Accounts: ['11111111111'],
+        },
       },
-    }],
+    ],
   });
 });
 
@@ -546,11 +575,7 @@ test('self managed stackset with custom execution role name uses partition-aware
           Resource: {
             'Fn::Join': [
               '',
-              [
-                'arn:',
-                { Ref: 'AWS::Partition' },
-                ':iam::*:role/CustomExecutionRole',
-              ],
+              ['arn:', { Ref: 'AWS::Partition' }, ':iam::*:role/CustomExecutionRole'],
             ],
           },
         },
@@ -584,13 +609,7 @@ test('self managed stackset with disabled regions uses partition-aware URL suffi
           Effect: 'Allow',
           Principal: {
             Service: {
-              'Fn::Join': [
-                '',
-                [
-                  'cloudformation.af-south-1.',
-                  { Ref: 'AWS::URLSuffix' },
-                ],
-              ],
+              'Fn::Join': ['', ['cloudformation.af-south-1.', { Ref: 'AWS::URLSuffix' }]],
             },
           },
           Action: 'sts:AssumeRole',

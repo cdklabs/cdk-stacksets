@@ -187,7 +187,7 @@ export abstract class StackSetTarget {
    */
   public static fromAccounts(options: AccountsTargetOptions): StackSetTarget {
     return new AccountsTarget(options);
-  };
+  }
 
   /**
    * Deploy the StackSet to a list of AWS Organizations organizational units.
@@ -252,8 +252,10 @@ class OrganizationsTarget extends StackSetTarget {
       throw new Error("cannot specify both 'excludeAccounts' and 'additionalAccounts'");
     }
 
-    const filterType = this.options.additionalAccounts ? AccountFilterType.UNION
-      : this.options.excludeAccounts ? AccountFilterType.DIFFERENCE
+    const filterType = this.options.additionalAccounts
+      ? AccountFilterType.UNION
+      : this.options.excludeAccounts
+        ? AccountFilterType.DIFFERENCE
         : AccountFilterType.NONE;
     return {
       regions: this.options.regions,
@@ -403,7 +405,8 @@ class ManagedDeploymentType extends DeploymentType {
       permissionsModel: PermissionModel.SERVICE_MANAGED,
       autoDeployEnabled,
       callAs: (this.options?.delegatedAdmin ?? true) ? CallAs.DELEGATED_ADMIN : CallAs.SELF,
-      autoDeployRetainStacks: autoDeployEnabled ? (this.options?.autoDeployRetainStacks ?? true)
+      autoDeployRetainStacks: autoDeployEnabled
+        ? (this.options?.autoDeployRetainStacks ?? true)
         : undefined,
     };
   }
@@ -667,32 +670,43 @@ export class StackSet extends Resource implements IStackSet {
    */
   constructor(scope: Construct, id: string, props: StackSetProps) {
     super(scope, id, {
-      physicalName: props.stackSetName ?? Lazy.string({ produce: () => Names.uniqueResourceName(this, {}) }),
+      physicalName:
+        props.stackSetName ?? Lazy.string({ produce: () => Names.uniqueResourceName(this, {}) }),
     });
 
     const deploymentTypeConfig = (props.deploymentType ?? DeploymentType.selfManaged())._bind(this);
     if (deploymentTypeConfig.permissionsModel === PermissionModel.SELF_MANAGED) {
-      this._role = deploymentTypeConfig.adminRole ?? new iam.Role(scope, 'AdminRole', {
-        assumedBy: new iam.ServicePrincipal('cloudformation.amazonaws.com'),
-      });
+      this._role =
+        deploymentTypeConfig.adminRole ??
+        new iam.Role(scope, 'AdminRole', {
+          assumedBy: new iam.ServicePrincipal('cloudformation.amazonaws.com'),
+        });
 
-      this._role.addToPrincipalPolicy(new iam.PolicyStatement({
-        effect: iam.Effect.ALLOW,
-        actions: ['sts:AssumeRole'],
-        resources: [
-          Stack.of(this).formatArn({
-            service: 'iam',
-            region: '',
-            account: '*',
-            resource: 'role',
-            resourceName: deploymentTypeConfig.executionRoleName ?? 'AWSCloudFormationStackSetExecutionRole',
-          }),
-        ],
-      }));
+      this._role.addToPrincipalPolicy(
+        new iam.PolicyStatement({
+          effect: iam.Effect.ALLOW,
+          actions: ['sts:AssumeRole'],
+          resources: [
+            Stack.of(this).formatArn({
+              service: 'iam',
+              region: '',
+              account: '*',
+              resource: 'role',
+              resourceName:
+                deploymentTypeConfig.executionRoleName ?? 'AWSCloudFormationStackSetExecutionRole',
+            }),
+          ],
+        }),
+      );
     }
 
-    if (props.capabilities?.includes(Capability.AUTO_EXPAND) && deploymentTypeConfig.permissionsModel === PermissionModel.SERVICE_MANAGED) {
-      throw new Error('service managed stacksets do not current support the "AUTO_EXPAND" capability');
+    if (
+      props.capabilities?.includes(Capability.AUTO_EXPAND) &&
+      deploymentTypeConfig.permissionsModel === PermissionModel.SERVICE_MANAGED
+    ) {
+      throw new Error(
+        'service managed stacksets do not current support the "AUTO_EXPAND" capability',
+      );
     }
 
     this.permissionModel = deploymentTypeConfig.permissionsModel;
@@ -709,7 +723,9 @@ export class StackSet extends Resource implements IStackSet {
       managedExecution: {
         Active: props.managedExecution ?? true,
       },
-      operationPreferences: props.operationPreferences ? undefinedIfNoKeys(props.operationPreferences) : undefined,
+      operationPreferences: props.operationPreferences
+        ? undefinedIfNoKeys(props.operationPreferences)
+        : undefined,
       stackSetName: this.physicalName,
       capabilities: props.capabilities,
       permissionModel: deploymentTypeConfig.permissionsModel,
@@ -720,14 +736,16 @@ export class StackSet extends Resource implements IStackSet {
           return this.stackInstances;
         },
       }),
-      ...(props.parameters ? {
-        parameters: Object.entries(props.parameters).map((entry) => {
-          return {
-            parameterKey: entry[0],
-            parameterValue: entry[1],
-          };
-        }),
-      } : {}),
+      ...(props.parameters
+        ? {
+            parameters: Object.entries(props.parameters).map((entry) => {
+              return {
+                parameterKey: entry[0],
+                parameterValue: entry[1],
+              };
+            }),
+          }
+        : {}),
     });
 
     // the file asset bucket deployment needs to complete before the stackset can deploy
@@ -754,17 +772,21 @@ export class StackSet extends Resource implements IStackSet {
 
     if (this._role && this._role instanceof iam.Role) {
       const disabledPrincipals: iam.IPrincipal[] = [];
-      targetConfig.regions.forEach(region => {
+      targetConfig.regions.forEach((region) => {
         if (!ENABLED_REGIONS.includes(region)) {
-          disabledPrincipals.push(new iam.ServicePrincipal(`cloudformation.${region}.${Stack.of(this).urlSuffix}`));
+          disabledPrincipals.push(
+            new iam.ServicePrincipal(`cloudformation.${region}.${Stack.of(this).urlSuffix}`),
+          );
         }
       });
       if (disabledPrincipals.length > 0) {
-        this._role.assumeRolePolicy?.addStatements(new iam.PolicyStatement({
-          effect: iam.Effect.ALLOW,
-          actions: ['sts:AssumeRole'],
-          principals: disabledPrincipals,
-        }));
+        this._role.assumeRolePolicy?.addStatements(
+          new iam.PolicyStatement({
+            effect: iam.Effect.ALLOW,
+            actions: ['sts:AssumeRole'],
+            principals: disabledPrincipals,
+          }),
+        );
       }
     }
     this.stackInstances.push({
@@ -772,9 +794,10 @@ export class StackSet extends Resource implements IStackSet {
       parameterOverrides: targetConfig.parameterOverrides,
       deploymentTargets: {
         accounts: targetConfig.accounts,
-        accountFilterType: this.permissionModel === PermissionModel.SERVICE_MANAGED
-          ? targetConfig.accountFilterType
-          : undefined, // field not supported for self managed
+        accountFilterType:
+          this.permissionModel === PermissionModel.SERVICE_MANAGED
+            ? targetConfig.accountFilterType
+            : undefined, // field not supported for self managed
         organizationalUnitIds: targetConfig.organizationalUnits,
       },
     });
@@ -782,6 +805,6 @@ export class StackSet extends Resource implements IStackSet {
 }
 
 function undefinedIfNoKeys<A extends Object>(obj: A): A | undefined {
-  const allUndefined = Object.values(obj).every(val => val === undefined);
+  const allUndefined = Object.values(obj).every((val) => val === undefined);
   return allUndefined ? undefined : obj;
 }
