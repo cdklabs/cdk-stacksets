@@ -27,7 +27,10 @@ import * as stacksets from '../src';
  * - The below environment variables must be set appropriately
  */
 
-const deploymentAccount = process.env.CDK_INTEG_ACCOUNT ?? process.env.INTEG_DEPLOYMENT_ACCOUNT ?? process.env.CDK_DEFAULT_ACCOUNT;
+const deploymentAccount =
+  process.env.CDK_INTEG_ACCOUNT ??
+  process.env.INTEG_DEPLOYMENT_ACCOUNT ??
+  process.env.CDK_DEFAULT_ACCOUNT;
 const targetAccount = process.env.CDK_INTEG_ACCOUNT ?? process.env.INTEG_TARGET_ACCOUNT;
 const targetRegion = process.env.INTEG_TARGET_REGION ?? 'us-east-1';
 const executionRoleName = 'AWSCloudFormationStackSetExecutionRole-integ-test';
@@ -37,7 +40,7 @@ const app = new App({
   postCliContext: {
     // I don't know why this is needed, but If I don't have it I get
     // an error about undefined not being a list
-    '@aws-cdk/core:target-partitions': ['aws'],
+    '@aws-cdk/core:target-partitions': ['aws', 'aws-us-gov'],
   },
 });
 
@@ -53,9 +56,7 @@ export class SupportStack extends Stack {
     this.executionRole = new iam.Role(this, 'CfnExecutionRole', {
       roleName: executionRoleName,
       assumedBy: new iam.ArnPrincipal(`arn:aws:iam::${deploymentAccount}:root`),
-      managedPolicies: [
-        iam.ManagedPolicy.fromAwsManagedPolicyName('AdministratorAccess'),
-      ],
+      managedPolicies: [iam.ManagedPolicy.fromAwsManagedPolicyName('AdministratorAccess')],
     });
   }
 }
@@ -105,9 +106,7 @@ class TestCase extends Stack {
             new iam.PolicyStatement({
               effect: iam.Effect.ALLOW,
               actions: ['sts:AssumeRole'],
-              resources: [
-                `arn:aws:iam::*:role/${executionRoleName}`,
-              ],
+              resources: [`arn:aws:iam::*:role/${executionRoleName}`],
             }),
           ],
         }),
@@ -125,7 +124,6 @@ class TestCase extends Stack {
         adminRole,
       }),
     });
-
   }
 }
 
@@ -148,7 +146,6 @@ class AssetTestCase extends Stack {
       template: stacksets.StackSetTemplate.fromStackSetStack(stackSetStack),
       deploymentType: stacksets.DeploymentType.serviceManaged({ delegatedAdmin: false }),
     });
-
   }
 }
 
