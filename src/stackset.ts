@@ -116,6 +116,15 @@ export interface OrganizationsTargetOptions extends TargetOptions {
    * specified in the organizationUnits property
    */
   readonly excludeAccounts?: string[];
+
+  /**
+   * A list of AWS accounts to intersect with the organizational units.
+   * Only accounts that are BOTH in the specified OUs AND in this list
+   * will have the StackSet deployed.
+   *
+   * @default - Stacks will be deployed to all accounts in the specified OUs
+   */
+  readonly intersectionAccounts?: string[];
 }
 
 /**
@@ -247,19 +256,25 @@ class OrganizationsTarget extends StackSetTarget {
   }
 
   public _bind(_scope: Construct, _options: TargetBindOptions = {}): StackSetTargetConfig {
-    if (this.options.excludeAccounts && this.options.additionalAccounts) {
-      throw new Error("cannot specify both 'excludeAccounts' and 'additionalAccounts'");
+    const specified = [
+      this.options.additionalAccounts,
+      this.options.excludeAccounts,
+      this.options.intersectionAccounts,
+    ].filter(Boolean).length;
+    if (specified > 1) {
+      throw new Error("specify at most one of 'additionalAccounts', 'excludeAccounts', or 'intersectionAccounts'");
     }
 
     const filterType = this.options.additionalAccounts ? AccountFilterType.UNION
       : this.options.excludeAccounts ? AccountFilterType.DIFFERENCE
-        : AccountFilterType.NONE;
+        : this.options.intersectionAccounts ? AccountFilterType.INTERSECTION
+          : AccountFilterType.NONE;
     return {
       regions: this.options.regions,
       parameterOverrides: this._renderParameters(this.options.parameterOverrides),
       accountFilterType: filterType,
       organizationalUnits: this.options.organizationalUnits,
-      accounts: this.options.additionalAccounts ?? this.options.excludeAccounts,
+      accounts: this.options.additionalAccounts ?? this.options.excludeAccounts ?? this.options.intersectionAccounts,
     };
   }
 }
