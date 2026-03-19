@@ -1574,7 +1574,6 @@ const stackSetProps: StackSetProps = { ... }
 
 | **Name** | **Type** | **Description** |
 | --- | --- | --- |
-| <code><a href="#cdk-stacksets.StackSetProps.property.target">target</a></code> | <code><a href="#cdk-stacksets.StackSetTarget">StackSetTarget</a></code> | Which accounts/OUs and regions to deploy the StackSet to. |
 | <code><a href="#cdk-stacksets.StackSetProps.property.template">template</a></code> | <code><a href="#cdk-stacksets.StackSetTemplate">StackSetTemplate</a></code> | The Stack that will be deployed to the target. |
 | <code><a href="#cdk-stacksets.StackSetProps.property.capabilities">capabilities</a></code> | <code><a href="#cdk-stacksets.Capability">Capability</a>[]</code> | Specify a list of capabilities required by your stackset. |
 | <code><a href="#cdk-stacksets.StackSetProps.property.deploymentType">deploymentType</a></code> | <code><a href="#cdk-stacksets.DeploymentType">DeploymentType</a></code> | The type of deployment for this StackSet. |
@@ -1583,18 +1582,7 @@ const stackSetProps: StackSetProps = { ... }
 | <code><a href="#cdk-stacksets.StackSetProps.property.operationPreferences">operationPreferences</a></code> | <code><a href="#cdk-stacksets.OperationPreferences">OperationPreferences</a></code> | The operation preferences for the StackSet. |
 | <code><a href="#cdk-stacksets.StackSetProps.property.parameters">parameters</a></code> | <code>{[ key: string ]: string}</code> | The input parameters for the stack set template. |
 | <code><a href="#cdk-stacksets.StackSetProps.property.stackSetName">stackSetName</a></code> | <code>string</code> | The name of the stack set. |
-
----
-
-##### `target`<sup>Required</sup> <a name="target" id="cdk-stacksets.StackSetProps.property.target"></a>
-
-```typescript
-public readonly target: StackSetTarget;
-```
-
-- *Type:* <a href="#cdk-stacksets.StackSetTarget">StackSetTarget</a>
-
-Which accounts/OUs and regions to deploy the StackSet to.
+| <code><a href="#cdk-stacksets.StackSetProps.property.target">target</a></code> | <code><a href="#cdk-stacksets.StackSetTarget">StackSetTarget</a></code> | Which accounts/OUs and regions to deploy the StackSet to. |
 
 ---
 
@@ -1717,6 +1705,19 @@ public readonly stackSetName: string;
 - *Default:* CloudFormation generated name
 
 The name of the stack set.
+
+---
+
+##### `target`<sup>Optional</sup> <a name="target" id="cdk-stacksets.StackSetProps.property.target"></a>
+
+```typescript
+public readonly target: StackSetTarget;
+```
+
+- *Type:* <a href="#cdk-stacksets.StackSetTarget">StackSetTarget</a>
+- *Default:* no targets. You can use `addTarget()` after construction to add targets.
+
+Which accounts/OUs and regions to deploy the StackSet to.
 
 ---
 

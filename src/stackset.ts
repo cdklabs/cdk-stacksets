@@ -425,8 +425,10 @@ class SelfDeploymentType extends DeploymentType {
 export interface StackSetProps {
   /**
    * Which accounts/OUs and regions to deploy the StackSet to
+   *
+   * @default - no targets. You can use `addTarget()` after construction to add targets.
    */
-  readonly target: StackSetTarget;
+  readonly target?: StackSetTarget;
 
   /**
    * The Stack that will be deployed to the target
@@ -690,7 +692,9 @@ export class StackSet extends Resource implements IStackSet {
 
     this.permissionModel = deploymentTypeConfig.permissionsModel;
 
-    this.addTarget(props.target);
+    if (props.target) {
+      this.addTarget(props.target);
+    }
     const stackSet = new cfn.CfnStackSet(this, 'Resource', {
       autoDeployment: undefinedIfNoKeys({
         enabled: deploymentTypeConfig.autoDeployEnabled,

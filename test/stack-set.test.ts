@@ -431,6 +431,54 @@ test('test lambda assets with two asset buckets', () => {
   Template.fromStack(stack).resourceCountIs('Custom::CDKBucketDeployment', 2);
 });
 
+test('stackset without target', () => {
+  const app = new App();
+  const stack = new Stack(app);
+
+  new StackSet(stack, 'StackSet', {
+    template: StackSetTemplate.fromStackSetStack(new StackSetStack(stack, 'Stack')),
+  });
+
+  Template.fromStack(stack).hasResourceProperties('AWS::CloudFormation::StackSet', {
+    ManagedExecution: { Active: true },
+    PermissionModel: 'SELF_MANAGED',
+    TemplateURL: {
+      'Fn::Sub': 'https://s3.${AWS::Region}.${AWS::URLSuffix}/cdk-hnb659fds-assets-${AWS::AccountId}-${AWS::Region}/44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a.json',
+    },
+  });
+
+  // No StackInstancesGroup should be present when no target is provided
+  const template = Template.fromStack(stack);
+  const stackSets = template.findResources('AWS::CloudFormation::StackSet');
+  const stackSetResource = Object.values(stackSets)[0];
+  expect(stackSetResource.Properties.StackInstancesGroup).toEqual([]);
+});
+
+test('stackset without target then addTarget', () => {
+  const app = new App();
+  const stack = new Stack(app);
+
+  const stackSet = new StackSet(stack, 'StackSet', {
+    template: StackSetTemplate.fromStackSetStack(new StackSetStack(stack, 'Stack')),
+  });
+
+  stackSet.addTarget(StackSetTarget.fromAccounts({
+    regions: ['us-east-1'],
+    accounts: ['11111111111'],
+  }));
+
+  Template.fromStack(stack).hasResourceProperties('AWS::CloudFormation::StackSet', {
+    ManagedExecution: { Active: true },
+    PermissionModel: 'SELF_MANAGED',
+    StackInstancesGroup: [{
+      Regions: ['us-east-1'],
+      DeploymentTargets: {
+        Accounts: ['11111111111'],
+      },
+    }],
+  });
+});
+
 test('passes operation preferences', () => {
   const app = new App();
   const stack = new Stack(app);
