@@ -1340,6 +1340,7 @@ const organizationsTargetOptions: OrganizationsTargetOptions = { ... }
 | <code><a href="#cdk-stacksets.OrganizationsTargetOptions.property.organizationalUnits">organizationalUnits</a></code> | <code>string[]</code> | A list of organizational unit ids to deploy to. |
 | <code><a href="#cdk-stacksets.OrganizationsTargetOptions.property.additionalAccounts">additionalAccounts</a></code> | <code>string[]</code> | A list of additional AWS accounts to deploy the StackSet to. |
 | <code><a href="#cdk-stacksets.OrganizationsTargetOptions.property.excludeAccounts">excludeAccounts</a></code> | <code>string[]</code> | A list of AWS accounts to exclude from deploying the StackSet to. |
+| <code><a href="#cdk-stacksets.OrganizationsTargetOptions.property.intersectionAccounts">intersectionAccounts</a></code> | <code>string[]</code> | A list of AWS accounts to intersect with the organizational units. |
 
 ---
 
@@ -1424,6 +1425,22 @@ A list of AWS accounts to exclude from deploying the StackSet to.
 This can
 be useful if there are accounts that exist in an OU that is provided in
 `organizationalUnits`, but you do not want the StackSet to be deployed.
+
+---
+
+##### `intersectionAccounts`<sup>Optional</sup> <a name="intersectionAccounts" id="cdk-stacksets.OrganizationsTargetOptions.property.intersectionAccounts"></a>
+
+```typescript
+public readonly intersectionAccounts: string[];
+```
+
+- *Type:* string[]
+- *Default:* Stacks will be deployed to all accounts in the specified OUs
+
+A list of AWS accounts to intersect with the organizational units.
+
+Only accounts that are BOTH in the specified OUs AND in this list
+will have the StackSet deployed.
 
 ---
 
