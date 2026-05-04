@@ -1,5 +1,5 @@
 import { CdklabsConstructLibrary } from 'cdklabs-projen-project-types';
-import { JsonPatch } from 'projen';
+import { DependencyType, JsonPatch } from 'projen';
 
 const MIN_CDK_VERSION = '2.108.0';
 const project = new CdklabsConstructLibrary({
@@ -15,6 +15,11 @@ const project = new CdklabsConstructLibrary({
   private: false,
   enablePRAutoMerge: true,
 });
+
+// Pin @aws-cdk/integ-tests-alpha to a version compatible with MIN_CDK_VERSION.
+// The integ-runner component hardcodes @latest, but newer versions use TC39
+// decorators that require a newer aws-cdk-lib than what this project supports.
+project.deps.addDependency(`@aws-cdk/integ-tests-alpha@${MIN_CDK_VERSION}-alpha.0`, DependencyType.DEVENV);
 
 const tasksJson = project.tryFindObjectFile('.projen/tasks.json');
 tasksJson?.patch(JsonPatch.add('/tasks/integ:update/requiredEnv', [
