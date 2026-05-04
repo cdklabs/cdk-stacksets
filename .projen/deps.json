@@ -114,7 +114,7 @@
     },
     {
       "name": "@aws-cdk/integ-tests-alpha",
-      "version": "latest",
+      "version": "2.108.0-alpha.0",
       "type": "devenv"
     },
     {
