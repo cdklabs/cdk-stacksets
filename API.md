@@ -51,6 +51,7 @@ The properties of the StackSet.
 | **Name** | **Description** |
 | --- | --- |
 | <code><a href="#cdk-stacksets.StackSet.toString">toString</a></code> | Returns a string representation of this construct. |
+| <code><a href="#cdk-stacksets.StackSet.with">with</a></code> | Applies one or more mixins to this construct. |
 | <code><a href="#cdk-stacksets.StackSet.applyRemovalPolicy">applyRemovalPolicy</a></code> | Apply the given removal policy to this resource. |
 | <code><a href="#cdk-stacksets.StackSet.addTarget">addTarget</a></code> | Adds a target to the StackSet. |
 
@@ -63,6 +64,27 @@ public toString(): string
 ```
 
 Returns a string representation of this construct.
+
+##### `with` <a name="with" id="cdk-stacksets.StackSet.with"></a>
+
+```typescript
+public with(mixins: ...IMixin[]): IConstruct
+```
+
+Applies one or more mixins to this construct.
+
+Mixins are applied in order. The list of constructs is captured at the
+start of the call, so constructs added by a mixin will not be visited.
+Use multiple `with()` calls if subsequent mixins should apply to added
+constructs.
+
+###### `mixins`<sup>Required</sup> <a name="mixins" id="cdk-stacksets.StackSet.with.parameter.mixins"></a>
+
+- *Type:* ...constructs.IMixin[]
+
+The mixins to apply.
+
+---
 
 ##### `applyRemovalPolicy` <a name="applyRemovalPolicy" id="cdk-stacksets.StackSet.applyRemovalPolicy"></a>
 
@@ -306,6 +328,7 @@ The properties of the StackSet.
 | **Name** | **Description** |
 | --- | --- |
 | <code><a href="#cdk-stacksets.StackSetStack.toString">toString</a></code> | Returns a string representation of this construct. |
+| <code><a href="#cdk-stacksets.StackSetStack.with">with</a></code> | Applies one or more mixins to this construct. |
 | <code><a href="#cdk-stacksets.StackSetStack.addDependency">addDependency</a></code> | Add a dependency between this stack and another stack. |
 | <code><a href="#cdk-stacksets.StackSetStack.addMetadata">addMetadata</a></code> | Adds an arbitary key-value pair, with information you want to record about the stack. |
 | <code><a href="#cdk-stacksets.StackSetStack.addTransform">addTransform</a></code> | Add a Transform to this stack. A Transform is a macro that AWS CloudFormation uses to process your template. |
@@ -330,6 +353,27 @@ public toString(): string
 ```
 
 Returns a string representation of this construct.
+
+##### `with` <a name="with" id="cdk-stacksets.StackSetStack.with"></a>
+
+```typescript
+public with(mixins: ...IMixin[]): IConstruct
+```
+
+Applies one or more mixins to this construct.
+
+Mixins are applied in order. The list of constructs is captured at the
+start of the call, so constructs added by a mixin will not be visited.
+Use multiple `with()` calls if subsequent mixins should apply to added
+constructs.
+
+###### `mixins`<sup>Required</sup> <a name="mixins" id="cdk-stacksets.StackSetStack.with.parameter.mixins"></a>
+
+- *Type:* ...constructs.IMixin[]
+
+The mixins to apply.
+
+---
 
 ##### `addDependency` <a name="addDependency" id="cdk-stacksets.StackSetStack.addDependency"></a>
 
