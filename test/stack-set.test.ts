@@ -1,3 +1,4 @@
+import fs from 'fs';
 import path from 'path';
 import {
   App, Stack, aws_lambda as lambda, aws_s3 as s3,
@@ -522,6 +523,54 @@ test('test lambda assets with two asset buckets', () => {
   });
 
   Template.fromStack(stack).resourceCountIs('Custom::CDKBucketDeployment', 2);
+});
+
+test('lambda asset keys in the stackset template match the bucket deployment uploads', () => {
+  const app = new App();
+  const stack = new Stack(app);
+  const stackSetStack = new StackSetStack(stack, 'CustomHashStack', {
+    assetBuckets: [s3.Bucket.fromBucketName(stack, 'AssetBucket', 'integ-assets')],
+    assetBucketPrefix: 'prefix',
+  });
+
+  // Mirrors aws-cdk-lib >= 2.258.0 custom-resource handler assets, which are
+  // staged with an explicit assetHash: the hash embedded in the staged asset
+  // name no longer equals the content fingerprint the bucket deployment
+  // uploads under.
+  new lambda.Function(stackSetStack, 'CustomHashLambda', {
+    runtime: lambda.Runtime.NODEJS_18_X,
+    handler: 'index.handler',
+    code: lambda.Code.fromAsset(path.join(__dirname, 'lambda'), { assetHash: 'custom-hash' }),
+  });
+
+  new StackSet(stack, 'StackSet', {
+    target: StackSetTarget.fromAccounts({
+      regions: ['us-east-1'],
+      accounts: ['11111111111'],
+    }),
+    template: StackSetTemplate.fromStackSetStack(stackSetStack),
+    capabilities: [Capability.IAM, Capability.NAMED_IAM],
+  });
+
+  const uploadedKeys = Object.values(Template.fromStack(stack).findResources('Custom::CDKBucketDeployment'))
+    .flatMap(resource => resource.Properties?.SourceObjectKeys as string[]);
+
+  const assembly = app.synth();
+  const templateFile = fs.readdirSync(assembly.directory).find(file => file.endsWith('.stackset.template.json'));
+  expect(templateFile).toBeDefined();
+  const stackSetResources: Record<string, { Type: string; Properties?: { Code?: { S3Key?: string } } }> = JSON.parse(
+    fs.readFileSync(path.join(assembly.directory, templateFile!), 'utf8'),
+  ).Resources;
+
+  const lambdaAssetKeys = Object.values(stackSetResources)
+    .filter(resource => resource.Type === 'AWS::Lambda::Function')
+    .map(resource => resource.Properties?.Code?.S3Key)
+    .filter((key): key is string => key !== undefined);
+
+  expect(lambdaAssetKeys.length).toBeGreaterThan(0);
+  for (const key of lambdaAssetKeys) {
+    expect(uploadedKeys).toContain(key);
+  }
 });
 
 test('stackset without target', () => {
