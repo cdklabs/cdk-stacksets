@@ -8,6 +8,7 @@ import {
   FileAssetLocation,
   DockerImageAssetLocation,
   DockerImageAssetSource,
+  FileSystem,
   ISynthesisSession,
   Names,
   Lazy,
@@ -120,9 +121,13 @@ export class StackSetStackSynthesizer extends StackSynthesizer {
 
     const bucketName = Fn.join('-', [this.assetBucketPrefix, this.boundStack.region]);
 
-    const assetFileBaseName = path.basename(asset.fileName);
-    const s3Filename = assetFileBaseName.split('.')[1] + '.zip';
-    const objectKey = `${s3Filename}`;
+    // The BucketDeployment above re-stages the asset through `Source.asset()` and,
+    // with `extract: false`, uploads it under the re-staged asset's content
+    // fingerprint. Derive the template's object key the same way so the two can
+    // never diverge: the hash embedded in the staged file name is not always the
+    // content fingerprint (for example, aws-cdk-lib >= 2.258.0 stages its
+    // custom-resource handler assets with an explicit `assetHash`).
+    const objectKey = `${FileSystem.fingerprint(assetPath)}.zip`;
     const s3ObjectUrl = `s3://${bucketName}/${objectKey}`;
     const httpUrl = `https://s3.${bucketName}/${objectKey}`;
 
