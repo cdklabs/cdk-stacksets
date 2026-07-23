@@ -1,5 +1,5 @@
 {
-  "version": "35.0.0",
+  "version": "54.0.0",
   "artifacts": {
     "integ-stack-set-support.assets": {
       "type": "cdk:asset-manifest",
@@ -72,7 +72,7 @@
         "validateOnSynth": false,
         "assumeRoleArn": "arn:${AWS::Partition}:iam::12345678:role/cdk-hnb659fds-deploy-role-12345678-test-region",
         "cloudFormationExecutionRoleArn": "arn:${AWS::Partition}:iam::12345678:role/cdk-hnb659fds-cfn-exec-role-12345678-test-region",
-        "stackTemplateAssetObjectUrl": "s3://cdk-hnb659fds-assets-12345678-test-region/3a5af893feef3141770218b887957ce48f09d2c38f224496b6b5ac38d26a1d92.json",
+        "stackTemplateAssetObjectUrl": "s3://cdk-hnb659fds-assets-12345678-test-region/086d2724faea854d118e9eed97164046f16b68bc3ba34294b040cc53360a9ead.json",
         "requiresBootstrapStackVersion": 6,
         "bootstrapStackVersionSsmParameter": "/cdk-bootstrap/hnb659fds/version",
         "additionalDependencies": [
@@ -139,7 +139,7 @@
         "validateOnSynth": false,
         "assumeRoleArn": "arn:${AWS::Partition}:iam::${AWS::AccountId}:role/cdk-hnb659fds-deploy-role-${AWS::AccountId}-${AWS::Region}",
         "cloudFormationExecutionRoleArn": "arn:${AWS::Partition}:iam::${AWS::AccountId}:role/cdk-hnb659fds-cfn-exec-role-${AWS::AccountId}-${AWS::Region}",
-        "stackTemplateAssetObjectUrl": "s3://cdk-hnb659fds-assets-${AWS::AccountId}-${AWS::Region}/a042f98f25fe2c784f1eb1f27c3963138d49d3e1913feb936f1a12f20a62349e.json",
+        "stackTemplateAssetObjectUrl": "s3://cdk-hnb659fds-assets-${AWS::AccountId}-${AWS::Region}/304cac1154e09b2add5e34bdfc7918f471e54461f7bb556588868eded3c09498.json",
         "requiresBootstrapStackVersion": 6,
         "bootstrapStackVersionSsmParameter": "/cdk-bootstrap/hnb659fds/version",
         "additionalDependencies": [
@@ -161,13 +161,16 @@
             "data": "[WARNING] Bucket Policy Permissions cannot be added to referenced Bucket. Please make sure your bucket has the correct permissions"
           }
         ],
-        "/integ-stackset-asset-test/StackSetAssetsBucketDeployment/AwsCliLayer/Resource": [
+        "/integ-stackset-asset-test/integstacksetassettestassetstacksetB1BE16AD-AssetBucketDeployment-0/AwsCliLayer/Resource": [
           {
             "type": "aws:cdk:logicalId",
-            "data": "integstacksetassettestassetstacksetB1BE16ADAssetBucketDeployment0AwsCliLayerC5715512"
+            "data": "integstacksetassettestassetstacksetB1BE16ADAssetBucketDeployment0AwsCliLayerC5715512",
+            "trace": [
+              "!!DESTRUCTIVE_CHANGES: WILL_REPLACE"
+            ]
           }
         ],
-        "/integ-stackset-asset-test/StackSetAssetsBucketDeployment/CustomResource/Default": [
+        "/integ-stackset-asset-test/integstacksetassettestassetstacksetB1BE16AD-AssetBucketDeployment-0/CustomResource/Default": [
           {
             "type": "aws:cdk:logicalId",
             "data": "integstacksetassettestassetstacksetB1BE16ADAssetBucketDeployment0CustomResource95864C0F"
@@ -266,5 +269,6 @@
         "file": "tree.json"
       }
     }
-  }
+  },
+  "minimumCliVersion": "2.1132.0"
 }
