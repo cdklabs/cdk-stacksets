@@ -83,7 +83,7 @@ export class StackSetStackSynthesizer extends StackSynthesizer {
     }
 
     const outdir = App.of(this.boundStack)?.outdir ?? 'cdk.out';
-    const assetPath = `${outdir}/${asset.fileName}`;
+    const assetPath = path.isAbsolute(asset.fileName) ? asset.fileName : path.join(outdir, asset.fileName);
 
     for (const assetBucket of this.assetBuckets) {
       const index = this.assetBuckets.indexOf(assetBucket);
