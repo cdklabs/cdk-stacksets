@@ -618,3 +618,93 @@ test('passes operation preferences', () => {
     }],
   });
 });
+
+test('empty additionalAccounts renders AccountFilterType NONE', () => {
+  const app = new App();
+  const stack = new Stack(app);
+
+  new StackSet(stack, 'StackSet', {
+    target: StackSetTarget.fromOrganizationalUnits({
+      regions: ['us-east-1'],
+      organizationalUnits: ['ou-1111111'],
+      additionalAccounts: [],
+    }),
+    deploymentType: DeploymentType.serviceManaged(),
+    template: StackSetTemplate.fromStackSetStack(new StackSetStack(stack, 'Stack')),
+  });
+
+  Template.fromStack(stack).hasResourceProperties('AWS::CloudFormation::StackSet', {
+    StackInstancesGroup: [{
+      Regions: ['us-east-1'],
+      DeploymentTargets: {
+        AccountFilterType: 'NONE',
+        OrganizationalUnitIds: ['ou-1111111'],
+      },
+    }],
+  });
+});
+
+test('empty excludeAccounts renders AccountFilterType NONE', () => {
+  const app = new App();
+  const stack = new Stack(app);
+
+  new StackSet(stack, 'StackSet', {
+    target: StackSetTarget.fromOrganizationalUnits({
+      regions: ['us-east-1'],
+      organizationalUnits: ['ou-1111111'],
+      excludeAccounts: [],
+    }),
+    deploymentType: DeploymentType.serviceManaged(),
+    template: StackSetTemplate.fromStackSetStack(new StackSetStack(stack, 'Stack')),
+  });
+
+  Template.fromStack(stack).hasResourceProperties('AWS::CloudFormation::StackSet', {
+    StackInstancesGroup: [{
+      Regions: ['us-east-1'],
+      DeploymentTargets: {
+        AccountFilterType: 'NONE',
+        OrganizationalUnitIds: ['ou-1111111'],
+      },
+    }],
+  });
+});
+
+test('empty intersectionAccounts renders AccountFilterType NONE', () => {
+  const app = new App();
+  const stack = new Stack(app);
+
+  new StackSet(stack, 'StackSet', {
+    target: StackSetTarget.fromOrganizationalUnits({
+      regions: ['us-east-1'],
+      organizationalUnits: ['ou-1111111'],
+      intersectionAccounts: [],
+    }),
+    deploymentType: DeploymentType.serviceManaged(),
+    template: StackSetTemplate.fromStackSetStack(new StackSetStack(stack, 'Stack')),
+  });
+
+  Template.fromStack(stack).hasResourceProperties('AWS::CloudFormation::StackSet', {
+    StackInstancesGroup: [{
+      Regions: ['us-east-1'],
+      DeploymentTargets: {
+        AccountFilterType: 'NONE',
+        OrganizationalUnitIds: ['ou-1111111'],
+      },
+    }],
+  });
+});
+
+test('fromAccounts with empty array throws', () => {
+  const app = new App();
+  const stack = new Stack(app);
+
+  expect(() => {
+    new StackSet(stack, 'StackSet', {
+      target: StackSetTarget.fromAccounts({
+        regions: ['us-east-1'],
+        accounts: [],
+      }),
+      template: StackSetTemplate.fromStackSetStack(new StackSetStack(stack, 'Stack')),
+    });
+  }).toThrow('fromAccounts requires at least one account');
+});

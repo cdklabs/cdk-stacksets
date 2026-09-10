@@ -241,6 +241,9 @@ class AccountsTarget extends StackSetTarget {
   }
 
   public _bind(_scope: Construct, _options: TargetBindOptions = {}): StackSetTargetConfig {
+    if (!this.options.accounts || this.options.accounts.length === 0) {
+      throw new Error('fromAccounts requires at least one account');
+    }
     return {
       regions: this.options.regions,
       parameterOverrides: this._renderParameters(this.options.parameterOverrides),
@@ -256,25 +259,31 @@ class OrganizationsTarget extends StackSetTarget {
   }
 
   public _bind(_scope: Construct, _options: TargetBindOptions = {}): StackSetTargetConfig {
+    // Normalize empty arrays to undefined — empty arrays are truthy in JS
+    // but CloudFormation requires at least one item for account lists.
+    const additionalAccounts = this.options.additionalAccounts?.length ? this.options.additionalAccounts : undefined;
+    const excludeAccounts = this.options.excludeAccounts?.length ? this.options.excludeAccounts : undefined;
+    const intersectionAccounts = this.options.intersectionAccounts?.length ? this.options.intersectionAccounts : undefined;
+
     const specified = [
-      this.options.additionalAccounts,
-      this.options.excludeAccounts,
-      this.options.intersectionAccounts,
+      additionalAccounts,
+      excludeAccounts,
+      intersectionAccounts,
     ].filter(Boolean).length;
     if (specified > 1) {
       throw new Error("specify at most one of 'additionalAccounts', 'excludeAccounts', or 'intersectionAccounts'");
     }
 
-    const filterType = this.options.additionalAccounts ? AccountFilterType.UNION
-      : this.options.excludeAccounts ? AccountFilterType.DIFFERENCE
-        : this.options.intersectionAccounts ? AccountFilterType.INTERSECTION
+    const filterType = additionalAccounts ? AccountFilterType.UNION
+      : excludeAccounts ? AccountFilterType.DIFFERENCE
+        : intersectionAccounts ? AccountFilterType.INTERSECTION
           : AccountFilterType.NONE;
     return {
       regions: this.options.regions,
       parameterOverrides: this._renderParameters(this.options.parameterOverrides),
       accountFilterType: filterType,
       organizationalUnits: this.options.organizationalUnits,
-      accounts: this.options.additionalAccounts ?? this.options.excludeAccounts ?? this.options.intersectionAccounts,
+      accounts: additionalAccounts ?? excludeAccounts ?? intersectionAccounts,
     };
   }
 }
