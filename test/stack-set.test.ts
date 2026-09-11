@@ -1,6 +1,6 @@
 import path from 'path';
 import {
-  App, Stack, aws_lambda as lambda, aws_s3 as s3,
+  App, Stack, Stage, aws_lambda as lambda, aws_s3 as s3,
 } from 'aws-cdk-lib';
 
 import { Template } from 'aws-cdk-lib/assertions';
@@ -522,6 +522,56 @@ test('test lambda assets with two asset buckets', () => {
   });
 
   Template.fromStack(stack).resourceCountIs('Custom::CDKBucketDeployment', 2);
+});
+
+test('test lambda assets in a stage', () => {
+  const app = new App({
+    context: {
+      [cxapi.ASSET_RESOURCE_METADATA_ENABLED_CONTEXT]: true,
+    },
+  });
+  const stage = new Stage(app, 'Stage');
+  const stack = new Stack(stage, 'Stack');
+  const lambdaStack = new LambdaStackSet(stack, 'LambdaStack', {
+    assetBuckets: [s3.Bucket.fromBucketName(stack, 'AssetBucket', 'integ-assets')],
+    assetBucketPrefix: 'prefix',
+  });
+
+  new StackSet(stack, 'StackSet', {
+    target: StackSetTarget.fromAccounts({
+      regions: ['us-east-1'],
+      accounts: ['11111111111'],
+    }),
+    template: StackSetTemplate.fromStackSetStack(lambdaStack),
+    capabilities: [Capability.IAM, Capability.NAMED_IAM],
+  });
+
+  Template.fromStack(stack).resourceCountIs('Custom::CDKBucketDeployment', 1);
+});
+
+test('test lambda assets with asset staging disabled', () => {
+  const app = new App({
+    context: {
+      [cxapi.ASSET_RESOURCE_METADATA_ENABLED_CONTEXT]: true,
+      [cxapi.DISABLE_ASSET_STAGING_CONTEXT]: true,
+    },
+  });
+  const stack = new Stack(app, 'Stack');
+  const lambdaStack = new LambdaStackSet(stack, 'LambdaStack', {
+    assetBuckets: [s3.Bucket.fromBucketName(stack, 'AssetBucket', 'integ-assets')],
+    assetBucketPrefix: 'prefix',
+  });
+
+  new StackSet(stack, 'StackSet', {
+    target: StackSetTarget.fromAccounts({
+      regions: ['us-east-1'],
+      accounts: ['11111111111'],
+    }),
+    template: StackSetTemplate.fromStackSetStack(lambdaStack),
+    capabilities: [Capability.IAM, Capability.NAMED_IAM],
+  });
+
+  Template.fromStack(stack).resourceCountIs('Custom::CDKBucketDeployment', 1);
 });
 
 test('stackset without target', () => {
