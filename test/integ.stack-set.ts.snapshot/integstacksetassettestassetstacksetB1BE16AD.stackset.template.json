@@ -35,7 +35,17 @@
       "Type": "AWS::Lambda::Function",
       "Properties": {
         "Code": {
-          "S3Bucket": "integ-assets",
+          "S3Bucket": {
+            "Fn::Join": [
+              "-",
+              [
+                "asset-bucket",
+                {
+                  "Ref": "AWS::Region"
+                }
+              ]
+            ]
+          },
           "S3Key": "e56263bd51a9cda3a5920a2b978d8827ae857776a6807cbe4ac9b2115dfed690.zip"
         },
         "Handler": "index.handler",
