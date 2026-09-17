@@ -354,6 +354,64 @@ test('fromOrganizations with intersectionAccounts', () => {
   });
 });
 
+test('fromOrganizations with additionalAccounts', () => {
+  const app = new App();
+  const stack = new Stack(app);
+
+  new StackSet(stack, 'StackSet', {
+    target: StackSetTarget.fromOrganizationalUnits({
+      regions: ['us-east-1'],
+      organizationalUnits: ['ou-1111111'],
+      additionalAccounts: ['222222222222', '333333333333'],
+    }),
+    deploymentType: DeploymentType.serviceManaged({
+      delegatedAdmin: false,
+      autoDeployEnabled: false,
+    }),
+    template: StackSetTemplate.fromStackSetStack(new StackSetStack(stack, 'Stack')),
+  });
+
+  Template.fromStack(stack).hasResourceProperties('AWS::CloudFormation::StackSet', {
+    StackInstancesGroup: [{
+      Regions: ['us-east-1'],
+      DeploymentTargets: {
+        AccountFilterType: 'UNION',
+        OrganizationalUnitIds: ['ou-1111111'],
+        Accounts: ['222222222222', '333333333333'],
+      },
+    }],
+  });
+});
+
+test('fromOrganizations with excludeAccounts', () => {
+  const app = new App();
+  const stack = new Stack(app);
+
+  new StackSet(stack, 'StackSet', {
+    target: StackSetTarget.fromOrganizationalUnits({
+      regions: ['us-east-1'],
+      organizationalUnits: ['ou-1111111'],
+      excludeAccounts: ['222222222222', '333333333333'],
+    }),
+    deploymentType: DeploymentType.serviceManaged({
+      delegatedAdmin: false,
+      autoDeployEnabled: false,
+    }),
+    template: StackSetTemplate.fromStackSetStack(new StackSetStack(stack, 'Stack')),
+  });
+
+  Template.fromStack(stack).hasResourceProperties('AWS::CloudFormation::StackSet', {
+    StackInstancesGroup: [{
+      Regions: ['us-east-1'],
+      DeploymentTargets: {
+        AccountFilterType: 'DIFFERENCE',
+        OrganizationalUnitIds: ['ou-1111111'],
+        Accounts: ['222222222222', '333333333333'],
+      },
+    }],
+  });
+});
+
 test('fromOrganizations throws when intersectionAccounts and excludeAccounts are both specified', () => {
   const app = new App();
   const stack = new Stack(app);

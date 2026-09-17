@@ -238,12 +238,15 @@ export abstract class StackSetTarget {
 class AccountsTarget extends StackSetTarget {
   constructor(private readonly options: AccountsTargetOptions) {
     super();
-  }
 
-  public _bind(_scope: Construct, _options: TargetBindOptions = {}): StackSetTargetConfig {
+    // Validated here rather than in `_bind` so that a misconfigured target
+    // fails as early as possible, i.e. at construction time.
     if (!this.options.accounts || this.options.accounts.length === 0) {
       throw new Error('fromAccounts requires at least one account');
     }
+  }
+
+  public _bind(_scope: Construct, _options: TargetBindOptions = {}): StackSetTargetConfig {
     return {
       regions: this.options.regions,
       parameterOverrides: this._renderParameters(this.options.parameterOverrides),
@@ -254,36 +257,43 @@ class AccountsTarget extends StackSetTarget {
 }
 
 class OrganizationsTarget extends StackSetTarget {
+  private readonly additionalAccounts?: string[];
+  private readonly excludeAccounts?: string[];
+  private readonly intersectionAccounts?: string[];
+
   constructor(private readonly options: OrganizationsTargetOptions) {
     super();
-  }
 
-  public _bind(_scope: Construct, _options: TargetBindOptions = {}): StackSetTargetConfig {
     // Normalize empty arrays to undefined — empty arrays are truthy in JS
     // but CloudFormation requires at least one item for account lists.
-    const additionalAccounts = this.options.additionalAccounts?.length ? this.options.additionalAccounts : undefined;
-    const excludeAccounts = this.options.excludeAccounts?.length ? this.options.excludeAccounts : undefined;
-    const intersectionAccounts = this.options.intersectionAccounts?.length ? this.options.intersectionAccounts : undefined;
+    this.additionalAccounts = this.options.additionalAccounts?.length ? this.options.additionalAccounts : undefined;
+    this.excludeAccounts = this.options.excludeAccounts?.length ? this.options.excludeAccounts : undefined;
+    this.intersectionAccounts = this.options.intersectionAccounts?.length ? this.options.intersectionAccounts : undefined;
 
+    // Validated here rather than in `_bind` so that a misconfigured target
+    // fails as early as possible, i.e. at construction time. The normalization
+    // above has to run first so empty arrays are not counted as specified.
     const specified = [
-      additionalAccounts,
-      excludeAccounts,
-      intersectionAccounts,
+      this.additionalAccounts,
+      this.excludeAccounts,
+      this.intersectionAccounts,
     ].filter(Boolean).length;
     if (specified > 1) {
       throw new Error("specify at most one of 'additionalAccounts', 'excludeAccounts', or 'intersectionAccounts'");
     }
+  }
 
-    const filterType = additionalAccounts ? AccountFilterType.UNION
-      : excludeAccounts ? AccountFilterType.DIFFERENCE
-        : intersectionAccounts ? AccountFilterType.INTERSECTION
+  public _bind(_scope: Construct, _options: TargetBindOptions = {}): StackSetTargetConfig {
+    const filterType = this.additionalAccounts ? AccountFilterType.UNION
+      : this.excludeAccounts ? AccountFilterType.DIFFERENCE
+        : this.intersectionAccounts ? AccountFilterType.INTERSECTION
           : AccountFilterType.NONE;
     return {
       regions: this.options.regions,
       parameterOverrides: this._renderParameters(this.options.parameterOverrides),
       accountFilterType: filterType,
       organizationalUnits: this.options.organizationalUnits,
-      accounts: additionalAccounts ?? excludeAccounts ?? intersectionAccounts,
+      accounts: this.additionalAccounts ?? this.excludeAccounts ?? this.intersectionAccounts,
     };
   }
 }
