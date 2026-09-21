@@ -27,6 +27,12 @@ class LambdaStackSet extends StackSetStack {
   }
 }
 
+class TestStackSetStack extends StackSetStack {
+  public toTemplate(): Template {
+    return Template.fromJSON(this._toCloudFormation());
+  }
+}
+
 test('default', () => {
   const app = new App();
   const stack = new Stack(app);
@@ -55,6 +61,14 @@ test('default', () => {
       },
     }],
   });
+});
+
+test('StackSet templates omit CDK version metadata by default', () => {
+  const app = new App({ analyticsReporting: true });
+  const parentStack = new Stack(app, 'Parent');
+  const stackSetStack = new TestStackSetStack(parentStack, 'StackSet');
+
+  stackSetStack.toTemplate().resourceCountIs('AWS::CDK::Metadata', 0);
 });
 
 test('stackset with parameters', () => {
