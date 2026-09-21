@@ -145,6 +145,15 @@ export class StackSetStackSynthesizer extends StackSynthesizer {
  */
 export interface StackSetStackProps {
   /**
+   * Whether to include CDK runtime version metadata in this StackSet template.
+   *
+   * StackSets validate resource types in target regions before evaluating conditions. Metadata can therefore prevent deployments to regions
+   * where `AWS::CDK::Metadata` is not available.
+   *
+   * @default false
+   */
+  readonly analyticsReporting?: boolean;
+  /**
    * An array of Buckets can be passed to store assets, enabling StackSetStack Asset support
    *
    * One Bucket is required per target region. The name must be `${assetBucketPrefix}-<region>`, where
@@ -184,6 +193,7 @@ export class StackSetStack extends Stack {
    */
   constructor(scope: Construct, id: string, props: StackSetStackProps = {}) {
     super(scope, id, {
+      analyticsReporting: props.analyticsReporting ?? false,
       synthesizer: new StackSetStackSynthesizer(props.assetBuckets, props.assetBucketPrefix),
     });
 
