@@ -23,7 +23,7 @@ import * as stacksets from '../src';
  *    deploys the stackset. It must have the asset s3 bucket named `asset-bucket-${deploymentAccount}-${targetRegion}`.
  *  - A "target" account which is where the stackset will deploy into
  *
- * - The target account must be bootstrapped to trust the deployment account and have the asset s3 bucket named asset-bucket-${targetRegion}
+ * - The target account must be bootstrapped to trust the deployment account
  * - The below environment variables must be set appropriately
  */
 
