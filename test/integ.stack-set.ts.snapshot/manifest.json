@@ -18,7 +18,7 @@
         "validateOnSynth": false,
         "assumeRoleArn": "arn:${AWS::Partition}:iam::12345678:role/cdk-hnb659fds-deploy-role-12345678-us-east-1",
         "cloudFormationExecutionRoleArn": "arn:${AWS::Partition}:iam::12345678:role/cdk-hnb659fds-cfn-exec-role-12345678-us-east-1",
-        "stackTemplateAssetObjectUrl": "s3://cdk-hnb659fds-assets-12345678-us-east-1/2e541d7f12aac25e7f5ca0f9ba123cc2d0b5eb327cd477c78b26c4b31e18e675.json",
+        "stackTemplateAssetObjectUrl": "s3://cdk-hnb659fds-assets-12345678-us-east-1/f0c47c9bd27314614eaaf1a98e307e13bb0ea52fd75fe7ac82a905df6fdd0667.json",
         "requiresBootstrapStackVersion": 6,
         "bootstrapStackVersionSsmParameter": "/cdk-bootstrap/hnb659fds/version",
         "additionalDependencies": [
@@ -38,6 +38,18 @@
           {
             "type": "aws:cdk:logicalId",
             "data": "CfnExecutionRole87CC388E"
+          }
+        ],
+        "/integ-stack-set-support/AdminRole/Resource": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "AdminRole38563C57"
+          }
+        ],
+        "/integ-stack-set-support/AdminRole/DefaultPolicy/Resource": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "AdminRoleDefaultPolicy1C2AB961"
           }
         ],
         "/integ-stack-set-support/BootstrapVersion": [
@@ -72,7 +84,7 @@
         "validateOnSynth": false,
         "assumeRoleArn": "arn:${AWS::Partition}:iam::12345678:role/cdk-hnb659fds-deploy-role-12345678-test-region",
         "cloudFormationExecutionRoleArn": "arn:${AWS::Partition}:iam::12345678:role/cdk-hnb659fds-cfn-exec-role-12345678-test-region",
-        "stackTemplateAssetObjectUrl": "s3://cdk-hnb659fds-assets-12345678-test-region/086d2724faea854d118e9eed97164046f16b68bc3ba34294b040cc53360a9ead.json",
+        "stackTemplateAssetObjectUrl": "s3://cdk-hnb659fds-assets-12345678-test-region/33be5f1038627d99450a54d63aa79858cfdd2277ea4172366683e32556eeaeb6.json",
         "requiresBootstrapStackVersion": 6,
         "bootstrapStackVersionSsmParameter": "/cdk-bootstrap/hnb659fds/version",
         "additionalDependencies": [
@@ -89,18 +101,6 @@
         "integ-stackset-test.assets"
       ],
       "metadata": {
-        "/integ-stackset-test/AdminRole/Resource": [
-          {
-            "type": "aws:cdk:logicalId",
-            "data": "AdminRole38563C57"
-          }
-        ],
-        "/integ-stackset-test/AdminRole/DefaultPolicy/Resource": [
-          {
-            "type": "aws:cdk:logicalId",
-            "data": "AdminRoleDefaultPolicy1C2AB961"
-          }
-        ],
         "/integ-stackset-test/StackSet/Resource": [
           {
             "type": "aws:cdk:logicalId",
@@ -117,6 +117,24 @@
           {
             "type": "aws:cdk:logicalId",
             "data": "CheckBootstrapVersion"
+          }
+        ],
+        "AdminRole38563C57": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "AdminRole38563C57",
+            "trace": [
+              "!!DESTRUCTIVE_CHANGES: WILL_DESTROY"
+            ]
+          }
+        ],
+        "AdminRoleDefaultPolicy1C2AB961": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "AdminRoleDefaultPolicy1C2AB961",
+            "trace": [
+              "!!DESTRUCTIVE_CHANGES: WILL_DESTROY"
+            ]
           }
         ]
       },
@@ -139,7 +157,7 @@
         "validateOnSynth": false,
         "assumeRoleArn": "arn:${AWS::Partition}:iam::${AWS::AccountId}:role/cdk-hnb659fds-deploy-role-${AWS::AccountId}-${AWS::Region}",
         "cloudFormationExecutionRoleArn": "arn:${AWS::Partition}:iam::${AWS::AccountId}:role/cdk-hnb659fds-cfn-exec-role-${AWS::AccountId}-${AWS::Region}",
-        "stackTemplateAssetObjectUrl": "s3://cdk-hnb659fds-assets-${AWS::AccountId}-${AWS::Region}/304cac1154e09b2add5e34bdfc7918f471e54461f7bb556588868eded3c09498.json",
+        "stackTemplateAssetObjectUrl": "s3://cdk-hnb659fds-assets-${AWS::AccountId}-${AWS::Region}/b34317bf1ae8c6603c7f70303b119d9bc35ebc1f2b7084b0ba923a45a1b41341.json",
         "requiresBootstrapStackVersion": 6,
         "bootstrapStackVersionSsmParameter": "/cdk-bootstrap/hnb659fds/version",
         "additionalDependencies": [
@@ -152,6 +170,7 @@
         }
       },
       "dependencies": [
+        "integ-stack-set-support",
         "integ-stackset-asset-test.assets"
       ],
       "metadata": {
@@ -164,10 +183,7 @@
         "/integ-stackset-asset-test/integstacksetassettestassetstacksetB1BE16AD-AssetBucketDeployment-0/AwsCliLayer/Resource": [
           {
             "type": "aws:cdk:logicalId",
-            "data": "integstacksetassettestassetstacksetB1BE16ADAssetBucketDeployment0AwsCliLayerC5715512",
-            "trace": [
-              "!!DESTRUCTIVE_CHANGES: WILL_REPLACE"
-            ]
+            "data": "integstacksetassettestassetstacksetB1BE16ADAssetBucketDeployment0AwsCliLayerC5715512"
           }
         ],
         "/integ-stackset-asset-test/integstacksetassettestassetstacksetB1BE16AD-AssetBucketDeployment-0/CustomResource/Default": [
@@ -270,5 +286,5 @@
       }
     }
   },
-  "minimumCliVersion": "2.1132.0"
+  "minimumCliVersion": "2.1142.0"
 }

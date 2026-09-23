@@ -29,7 +29,7 @@
     "SourceObjectKeys": [
      "e56263bd51a9cda3a5920a2b978d8827ae857776a6807cbe4ac9b2115dfed690.zip"
     ],
-    "DestinationBucketName": "integ-assets",
+    "DestinationBucketName": "asset-bucket-us-east-1",
     "Extract": false,
     "Prune": false
    },
@@ -136,7 +136,7 @@
            {
             "Ref": "AWS::Partition"
            },
-           ":s3:::integ-assets"
+           ":s3:::asset-bucket-us-east-1"
           ]
          ]
         },
@@ -148,7 +148,7 @@
            {
             "Ref": "AWS::Partition"
            },
-           ":s3:::integ-assets/*"
+           ":s3:::asset-bucket-us-east-1/*"
           ]
          ]
         }
@@ -202,19 +202,18 @@
   "StackSet6E6355CF": {
    "Type": "AWS::CloudFormation::StackSet",
    "Properties": {
-    "AutoDeployment": {
-     "Enabled": true,
-     "RetainStacksOnAccountRemoval": true
-    },
-    "CallAs": "SELF",
+    "AdministrationRoleARN": "arn:aws:iam::12345678:role/AWSCloudFormationStackSetAdministrationRole-integ-test",
+    "Capabilities": [
+     "CAPABILITY_IAM"
+    ],
+    "ExecutionRoleName": "AWSCloudFormationStackSetExecutionRole-integ-test",
     "ManagedExecution": {
      "Active": true
     },
-    "PermissionModel": "SERVICE_MANAGED",
+    "PermissionModel": "SELF_MANAGED",
     "StackInstancesGroup": [
      {
       "DeploymentTargets": {
-       "AccountFilterType": "INTERSECTION",
        "Accounts": [
         "12345678"
        ]
@@ -226,7 +225,7 @@
     ],
     "StackSetName": "integstacksetassettestStackSet091EC131",
     "TemplateURL": {
-     "Fn::Sub": "https://s3.${AWS::Region}.${AWS::URLSuffix}/cdk-hnb659fds-assets-${AWS::AccountId}-${AWS::Region}/8a79245976356195e252a35c4adeb67d13403b4aa4797878ffeb1cbdbf6b1e10.json"
+     "Fn::Sub": "https://s3.${AWS::Region}.${AWS::URLSuffix}/cdk-hnb659fds-assets-${AWS::AccountId}-${AWS::Region}/732f0efc3fe541290c0b17eaee2d66ebb6aaf4046cd9147a1d94bacc9b5dd647.json"
     }
    },
    "DependsOn": [

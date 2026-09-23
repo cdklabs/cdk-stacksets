@@ -23,7 +23,7 @@ import * as stacksets from '../src';
  *    deploys the stackset
  *  - A "target" account which is where the stackset will deploy into
  *
- * - The target account must be bootstrapped to trust the deployment account
+ * - The target account must be bootstrapped to trust the deployment account and have the asset s3 bucket named asset-bucket-${targetRegion}
  * - The below environment variables must be set appropriately
  */
 
@@ -47,6 +47,7 @@ const app = new App({
  */
 export class SupportStack extends Stack {
   public readonly executionRole: iam.IRole;
+  public readonly adminRole: iam.IRole;
   constructor(scope: Construct, id: string, props?: StackProps) {
     super(scope, id, props);
 
@@ -57,6 +58,26 @@ export class SupportStack extends Stack {
         iam.ManagedPolicy.fromAwsManagedPolicyName('AdministratorAccess'),
       ],
     });
+
+    this.adminRole = new iam.Role(this, 'AdminRole', {
+      roleName: adminRoleName,
+      assumedBy: new iam.ServicePrincipal('cloudformation.amazonaws.com'),
+      inlinePolicies: {
+        AssumeExecutionRole: new iam.PolicyDocument({
+          statements: [
+            new iam.PolicyStatement({
+              effect: iam.Effect.ALLOW,
+              actions: ['sts:AssumeRole'],
+              resources: [
+                `arn:aws:iam::*:role/${executionRoleName}`,
+              ],
+            }),
+          ],
+        }),
+      },
+    });
+
+    this.adminRole.node.addDependency(this.executionRole);
   }
 }
 
@@ -88,6 +109,7 @@ class LambdaStackSet extends stacksets.StackSetStack {
 
 interface TestCaseProps extends StackProps {
   executionRole: iam.IRole;
+  adminRole: iam.IRole;
 }
 
 /**
@@ -96,23 +118,7 @@ interface TestCaseProps extends StackProps {
 class TestCase extends Stack {
   constructor(scope: Construct, id: string, props: TestCaseProps) {
     super(scope, id, props);
-    const adminRole = new iam.Role(this, 'AdminRole', {
-      roleName: adminRoleName,
-      assumedBy: new iam.ServicePrincipal('cloudformation.amazonaws.com'),
-      inlinePolicies: {
-        AssumeExecutionRole: new iam.PolicyDocument({
-          statements: [
-            new iam.PolicyStatement({
-              effect: iam.Effect.ALLOW,
-              actions: ['sts:AssumeRole'],
-              resources: [
-                `arn:aws:iam::*:role/${executionRoleName}`,
-              ],
-            }),
-          ],
-        }),
-      },
-    });
+
     const stackSetStack = new MyStackSet(this, 'integ-stack-set');
     new stacksets.StackSet(this, 'StackSet', {
       target: stacksets.StackSetTarget.fromAccounts({
@@ -122,7 +128,7 @@ class TestCase extends Stack {
       template: stacksets.StackSetTemplate.fromStackSetStack(stackSetStack),
       deploymentType: stacksets.DeploymentType.selfManaged({
         executionRoleName: props.executionRole.roleName,
-        adminRole,
+        adminRole: props.adminRole,
       }),
     });
 
@@ -133,11 +139,11 @@ class TestCase extends Stack {
  * Create the stack which will create the StackSet resource
  */
 class AssetTestCase extends Stack {
-  constructor(scope: Construct, id: string) {
+  constructor(scope: Construct, id: string, props: TestCaseProps) {
     super(scope, id);
 
     const stackSetStack = new LambdaStackSet(this, 'asset-stack-set', {
-      assetBuckets: [s3.Bucket.fromBucketName(this, 'AssetBucket', 'integ-assets')],
+      assetBuckets: [s3.Bucket.fromBucketName(this, 'AssetBucket', `asset-bucket-${targetRegion}`)],
       assetBucketPrefix: 'asset-bucket',
     });
     new stacksets.StackSet(this, 'StackSet', {
@@ -146,7 +152,11 @@ class AssetTestCase extends Stack {
         regions: [targetRegion],
       }),
       template: stacksets.StackSetTemplate.fromStackSetStack(stackSetStack),
-      deploymentType: stacksets.DeploymentType.serviceManaged({ delegatedAdmin: false }),
+      deploymentType: stacksets.DeploymentType.selfManaged({
+        executionRoleName: props.executionRole.roleName,
+        adminRole: props.adminRole,
+      }),
+      capabilities: [stacksets.Capability.IAM]
     });
 
   }
@@ -165,11 +175,17 @@ const testCase = new TestCase(app, 'integ-stackset-test', {
     region: process.env.CDK_INTEG_REGION ?? process.env.CDK_DEFAULT_REGION,
   },
   executionRole: supportStack.executionRole,
+  adminRole: supportStack.adminRole,
 });
 
 testCase.addDependency(supportStack);
 
-const assetTestCase = new AssetTestCase(app, 'integ-stackset-asset-test');
+const assetTestCase = new AssetTestCase(app, 'integ-stackset-asset-test', {
+  executionRole: supportStack.executionRole,
+  adminRole: supportStack.adminRole,
+});
+
+assetTestCase.addDependency(supportStack);
 
 new IntegTest(app, 'integ-test', {
   testCases: [testCase, assetTestCase],
