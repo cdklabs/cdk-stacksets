@@ -20,10 +20,10 @@ import * as stacksets from '../src';
  *
  * - 2 accounts:
  *  - A "deployment" account which will be the account that the test case runs in and
- *    deploys the stackset
+ *    deploys the stackset. It must have the asset s3 bucket named `asset-bucket-${targetRegion}`.
  *  - A "target" account which is where the stackset will deploy into
  *
- * - The target account must be bootstrapped to trust the deployment account and have the asset s3 bucket named asset-bucket-${targetRegion}
+ * - The target account must be bootstrapped to trust the deployment account
  * - The below environment variables must be set appropriately
  */
 
