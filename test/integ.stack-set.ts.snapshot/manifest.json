@@ -1,5 +1,5 @@
 {
-  "version": "35.0.0",
+  "version": "54.0.0",
   "artifacts": {
     "integ-stack-set-support.assets": {
       "type": "cdk:asset-manifest",
@@ -18,7 +18,7 @@
         "validateOnSynth": false,
         "assumeRoleArn": "arn:${AWS::Partition}:iam::12345678:role/cdk-hnb659fds-deploy-role-12345678-us-east-1",
         "cloudFormationExecutionRoleArn": "arn:${AWS::Partition}:iam::12345678:role/cdk-hnb659fds-cfn-exec-role-12345678-us-east-1",
-        "stackTemplateAssetObjectUrl": "s3://cdk-hnb659fds-assets-12345678-us-east-1/2e541d7f12aac25e7f5ca0f9ba123cc2d0b5eb327cd477c78b26c4b31e18e675.json",
+        "stackTemplateAssetObjectUrl": "s3://cdk-hnb659fds-assets-12345678-us-east-1/e67a680ff5e6314a5bf9f64c412c612a09c5aaea53c4377498157847127030f4.json",
         "requiresBootstrapStackVersion": 6,
         "bootstrapStackVersionSsmParameter": "/cdk-bootstrap/hnb659fds/version",
         "additionalDependencies": [
@@ -38,6 +38,18 @@
           {
             "type": "aws:cdk:logicalId",
             "data": "CfnExecutionRole87CC388E"
+          }
+        ],
+        "/integ-stack-set-support/AdminRole/Resource": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "AdminRole38563C57"
+          }
+        ],
+        "/integ-stack-set-support/AdminRole/DefaultPolicy/Resource": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "AdminRoleDefaultPolicy1C2AB961"
           }
         ],
         "/integ-stack-set-support/BootstrapVersion": [
@@ -72,7 +84,7 @@
         "validateOnSynth": false,
         "assumeRoleArn": "arn:${AWS::Partition}:iam::12345678:role/cdk-hnb659fds-deploy-role-12345678-test-region",
         "cloudFormationExecutionRoleArn": "arn:${AWS::Partition}:iam::12345678:role/cdk-hnb659fds-cfn-exec-role-12345678-test-region",
-        "stackTemplateAssetObjectUrl": "s3://cdk-hnb659fds-assets-12345678-test-region/3a5af893feef3141770218b887957ce48f09d2c38f224496b6b5ac38d26a1d92.json",
+        "stackTemplateAssetObjectUrl": "s3://cdk-hnb659fds-assets-12345678-test-region/18fe3ef76f9c43a5c15b51295c1e1d181bc6305561bf819b676bd8fa6b45f2fd.json",
         "requiresBootstrapStackVersion": 6,
         "bootstrapStackVersionSsmParameter": "/cdk-bootstrap/hnb659fds/version",
         "additionalDependencies": [
@@ -89,18 +101,6 @@
         "integ-stackset-test.assets"
       ],
       "metadata": {
-        "/integ-stackset-test/AdminRole/Resource": [
-          {
-            "type": "aws:cdk:logicalId",
-            "data": "AdminRole38563C57"
-          }
-        ],
-        "/integ-stackset-test/AdminRole/DefaultPolicy/Resource": [
-          {
-            "type": "aws:cdk:logicalId",
-            "data": "AdminRoleDefaultPolicy1C2AB961"
-          }
-        ],
         "/integ-stackset-test/StackSet/Resource": [
           {
             "type": "aws:cdk:logicalId",
@@ -139,7 +139,7 @@
         "validateOnSynth": false,
         "assumeRoleArn": "arn:${AWS::Partition}:iam::${AWS::AccountId}:role/cdk-hnb659fds-deploy-role-${AWS::AccountId}-${AWS::Region}",
         "cloudFormationExecutionRoleArn": "arn:${AWS::Partition}:iam::${AWS::AccountId}:role/cdk-hnb659fds-cfn-exec-role-${AWS::AccountId}-${AWS::Region}",
-        "stackTemplateAssetObjectUrl": "s3://cdk-hnb659fds-assets-${AWS::AccountId}-${AWS::Region}/a042f98f25fe2c784f1eb1f27c3963138d49d3e1913feb936f1a12f20a62349e.json",
+        "stackTemplateAssetObjectUrl": "s3://cdk-hnb659fds-assets-${AWS::AccountId}-${AWS::Region}/41b0ed167317c918d859add69dcd3b0ca3c12c0b319d37d3d596aa770695718d.json",
         "requiresBootstrapStackVersion": 6,
         "bootstrapStackVersionSsmParameter": "/cdk-bootstrap/hnb659fds/version",
         "additionalDependencies": [
@@ -152,6 +152,7 @@
         }
       },
       "dependencies": [
+        "integ-stack-set-support",
         "integ-stackset-asset-test.assets"
       ],
       "metadata": {
@@ -161,13 +162,13 @@
             "data": "[WARNING] Bucket Policy Permissions cannot be added to referenced Bucket. Please make sure your bucket has the correct permissions"
           }
         ],
-        "/integ-stackset-asset-test/StackSetAssetsBucketDeployment/AwsCliLayer/Resource": [
+        "/integ-stackset-asset-test/integstacksetassettestassetstacksetB1BE16AD-AssetBucketDeployment-0/AwsCliLayer/Resource": [
           {
             "type": "aws:cdk:logicalId",
             "data": "integstacksetassettestassetstacksetB1BE16ADAssetBucketDeployment0AwsCliLayerC5715512"
           }
         ],
-        "/integ-stackset-asset-test/StackSetAssetsBucketDeployment/CustomResource/Default": [
+        "/integ-stackset-asset-test/integstacksetassettestassetstacksetB1BE16AD-AssetBucketDeployment-0/CustomResource/Default": [
           {
             "type": "aws:cdk:logicalId",
             "data": "integstacksetassettestassetstacksetB1BE16ADAssetBucketDeployment0CustomResource95864C0F"
@@ -266,5 +267,6 @@
         "file": "tree.json"
       }
     }
-  }
+  },
+  "minimumCliVersion": "2.1142.0"
 }

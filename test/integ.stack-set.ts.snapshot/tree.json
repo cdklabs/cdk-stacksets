@@ -66,39 +66,13 @@
               "version": "2.108.0"
             }
           },
-          "BootstrapVersion": {
-            "id": "BootstrapVersion",
-            "path": "integ-stack-set-support/BootstrapVersion",
-            "constructInfo": {
-              "fqn": "aws-cdk-lib.CfnParameter",
-              "version": "2.108.0"
-            }
-          },
-          "CheckBootstrapVersion": {
-            "id": "CheckBootstrapVersion",
-            "path": "integ-stack-set-support/CheckBootstrapVersion",
-            "constructInfo": {
-              "fqn": "aws-cdk-lib.CfnRule",
-              "version": "2.108.0"
-            }
-          }
-        },
-        "constructInfo": {
-          "fqn": "aws-cdk-lib.Stack",
-          "version": "2.108.0"
-        }
-      },
-      "integ-stackset-test": {
-        "id": "integ-stackset-test",
-        "path": "integ-stackset-test",
-        "children": {
           "AdminRole": {
             "id": "AdminRole",
-            "path": "integ-stackset-test/AdminRole",
+            "path": "integ-stack-set-support/AdminRole",
             "children": {
               "ImportAdminRole": {
                 "id": "ImportAdminRole",
-                "path": "integ-stackset-test/AdminRole/ImportAdminRole",
+                "path": "integ-stack-set-support/AdminRole/ImportAdminRole",
                 "constructInfo": {
                   "fqn": "aws-cdk-lib.Resource",
                   "version": "2.108.0"
@@ -106,7 +80,7 @@
               },
               "Resource": {
                 "id": "Resource",
-                "path": "integ-stackset-test/AdminRole/Resource",
+                "path": "integ-stack-set-support/AdminRole/Resource",
                 "attributes": {
                   "aws:cdk:cloudformation:type": "AWS::IAM::Role",
                   "aws:cdk:cloudformation:props": {
@@ -147,11 +121,11 @@
               },
               "DefaultPolicy": {
                 "id": "DefaultPolicy",
-                "path": "integ-stackset-test/AdminRole/DefaultPolicy",
+                "path": "integ-stack-set-support/AdminRole/DefaultPolicy",
                 "children": {
                   "Resource": {
                     "id": "Resource",
-                    "path": "integ-stackset-test/AdminRole/DefaultPolicy/Resource",
+                    "path": "integ-stack-set-support/AdminRole/DefaultPolicy/Resource",
                     "attributes": {
                       "aws:cdk:cloudformation:type": "AWS::IAM::Policy",
                       "aws:cdk:cloudformation:props": {
@@ -160,7 +134,21 @@
                             {
                               "Action": "sts:AssumeRole",
                               "Effect": "Allow",
-                              "Resource": "arn:aws:iam::*:role/AWSCloudFormationStackSetExecutionRole-integ-test"
+                              "Resource": {
+                                "Fn::Join": [
+                                  "",
+                                  [
+                                    "arn:",
+                                    {
+                                      "Ref": "AWS::Partition"
+                                    },
+                                    ":iam::*:role/",
+                                    {
+                                      "Ref": "CfnExecutionRole87CC388E"
+                                    }
+                                  ]
+                                ]
+                              }
                             }
                           ],
                           "Version": "2012-10-17"
@@ -190,6 +178,32 @@
               "version": "2.108.0"
             }
           },
+          "BootstrapVersion": {
+            "id": "BootstrapVersion",
+            "path": "integ-stack-set-support/BootstrapVersion",
+            "constructInfo": {
+              "fqn": "aws-cdk-lib.CfnParameter",
+              "version": "2.108.0"
+            }
+          },
+          "CheckBootstrapVersion": {
+            "id": "CheckBootstrapVersion",
+            "path": "integ-stack-set-support/CheckBootstrapVersion",
+            "constructInfo": {
+              "fqn": "aws-cdk-lib.CfnRule",
+              "version": "2.108.0"
+            }
+          }
+        },
+        "constructInfo": {
+          "fqn": "aws-cdk-lib.Stack",
+          "version": "2.108.0"
+        }
+      },
+      "integ-stackset-test": {
+        "id": "integ-stackset-test",
+        "path": "integ-stackset-test",
+        "children": {
           "integ-stack-set": {
             "id": "integ-stack-set",
             "path": "integ-stackset-test/integ-stack-set",
@@ -232,12 +246,7 @@
                 "attributes": {
                   "aws:cdk:cloudformation:type": "AWS::CloudFormation::StackSet",
                   "aws:cdk:cloudformation:props": {
-                    "administrationRoleArn": {
-                      "Fn::GetAtt": [
-                        "AdminRole38563C57",
-                        "Arn"
-                      ]
-                    },
+                    "administrationRoleArn": "arn:aws:iam::12345678:role/AWSCloudFormationStackSetAdministrationRole-integ-test",
                     "executionRoleName": "AWSCloudFormationStackSetExecutionRole-integ-test",
                     "managedExecution": {
                       "Active": true
@@ -404,7 +413,17 @@
                       "aws:cdk:cloudformation:type": "AWS::Lambda::Function",
                       "aws:cdk:cloudformation:props": {
                         "code": {
-                          "s3Bucket": "integ-assets",
+                          "s3Bucket": {
+                            "Fn::Join": [
+                              "-",
+                              [
+                                "asset-bucket",
+                                {
+                                  "Ref": "AWS::Region"
+                                }
+                              ]
+                            ]
+                          },
                           "s3Key": "e56263bd51a9cda3a5920a2b978d8827ae857776a6807cbe4ac9b2115dfed690.zip"
                         },
                         "handler": "index.handler",
@@ -427,6 +446,14 @@
                   "fqn": "aws-cdk-lib.aws_lambda.Function",
                   "version": "2.108.0"
                 }
+              },
+              "ParentAssetBucket": {
+                "id": "ParentAssetBucket",
+                "path": "integ-stackset-asset-test/asset-stack-set/ParentAssetBucket",
+                "constructInfo": {
+                  "fqn": "aws-cdk-lib.aws_s3.BucketBase",
+                  "version": "2.108.0"
+                }
               }
             },
             "constructInfo": {
@@ -434,21 +461,21 @@
               "version": "2.108.0"
             }
           },
-          "StackSetAssetsBucketDeployment0": {
-            "id": "StackSetAssetsBucketDeployment",
-            "path": "integ-stackset-asset-test/StackSetAssetsBucketDeployment",
+          "integstacksetassettestassetstacksetB1BE16AD-AssetBucketDeployment-0": {
+            "id": "integstacksetassettestassetstacksetB1BE16AD-AssetBucketDeployment-0",
+            "path": "integ-stackset-asset-test/integstacksetassettestassetstacksetB1BE16AD-AssetBucketDeployment-0",
             "children": {
               "AwsCliLayer": {
                 "id": "AwsCliLayer",
-                "path": "integ-stackset-asset-test/StackSetAssetsBucketDeployment/AwsCliLayer",
+                "path": "integ-stackset-asset-test/integstacksetassettestassetstacksetB1BE16AD-AssetBucketDeployment-0/AwsCliLayer",
                 "children": {
                   "Code": {
                     "id": "Code",
-                    "path": "integ-stackset-asset-test/StackSetAssetsBucketDeployment/AwsCliLayer/Code",
+                    "path": "integ-stackset-asset-test/integstacksetassettestassetstacksetB1BE16AD-AssetBucketDeployment-0/AwsCliLayer/Code",
                     "children": {
                       "Stage": {
                         "id": "Stage",
-                        "path": "integ-stackset-asset-test/StackSetAssetsBucketDeployment/AwsCliLayer/Code/Stage",
+                        "path": "integ-stackset-asset-test/integstacksetassettestassetstacksetB1BE16AD-AssetBucketDeployment-0/AwsCliLayer/Code/Stage",
                         "constructInfo": {
                           "fqn": "aws-cdk-lib.AssetStaging",
                           "version": "2.108.0"
@@ -456,7 +483,7 @@
                       },
                       "AssetBucket": {
                         "id": "AssetBucket",
-                        "path": "integ-stackset-asset-test/StackSetAssetsBucketDeployment/AwsCliLayer/Code/AssetBucket",
+                        "path": "integ-stackset-asset-test/integstacksetassettestassetstacksetB1BE16AD-AssetBucketDeployment-0/AwsCliLayer/Code/AssetBucket",
                         "constructInfo": {
                           "fqn": "aws-cdk-lib.aws_s3.BucketBase",
                           "version": "2.108.0"
@@ -470,7 +497,7 @@
                   },
                   "Resource": {
                     "id": "Resource",
-                    "path": "integ-stackset-asset-test/StackSetAssetsBucketDeployment/AwsCliLayer/Resource",
+                    "path": "integ-stackset-asset-test/integstacksetassettestassetstacksetB1BE16AD-AssetBucketDeployment-0/AwsCliLayer/Resource",
                     "attributes": {
                       "aws:cdk:cloudformation:type": "AWS::Lambda::LayerVersion",
                       "aws:cdk:cloudformation:props": {
@@ -496,45 +523,19 @@
               },
               "CustomResourceHandler": {
                 "id": "CustomResourceHandler",
-                "path": "integ-stackset-asset-test/StackSetAssetsBucketDeployment/CustomResourceHandler",
+                "path": "integ-stackset-asset-test/integstacksetassettestassetstacksetB1BE16AD-AssetBucketDeployment-0/CustomResourceHandler",
                 "constructInfo": {
                   "fqn": "aws-cdk-lib.aws_lambda.SingletonFunction",
                   "version": "2.108.0"
                 }
               },
-              "Asset1": {
-                "id": "Asset1",
-                "path": "integ-stackset-asset-test/StackSetAssetsBucketDeployment/Asset1",
-                "children": {
-                  "Stage": {
-                    "id": "Stage",
-                    "path": "integ-stackset-asset-test/StackSetAssetsBucketDeployment/Asset1/Stage",
-                    "constructInfo": {
-                      "fqn": "aws-cdk-lib.AssetStaging",
-                      "version": "2.108.0"
-                    }
-                  },
-                  "AssetBucket": {
-                    "id": "AssetBucket",
-                    "path": "integ-stackset-asset-test/StackSetAssetsBucketDeployment/Asset1/AssetBucket",
-                    "constructInfo": {
-                      "fqn": "aws-cdk-lib.aws_s3.BucketBase",
-                      "version": "2.108.0"
-                    }
-                  }
-                },
-                "constructInfo": {
-                  "fqn": "aws-cdk-lib.aws_s3_assets.Asset",
-                  "version": "2.108.0"
-                }
-              },
               "CustomResource": {
                 "id": "CustomResource",
-                "path": "integ-stackset-asset-test/StackSetAssetsBucketDeployment/CustomResource",
+                "path": "integ-stackset-asset-test/integstacksetassettestassetstacksetB1BE16AD-AssetBucketDeployment-0/CustomResource",
                 "children": {
                   "Default": {
                     "id": "Default",
-                    "path": "integ-stackset-asset-test/StackSetAssetsBucketDeployment/CustomResource/Default",
+                    "path": "integ-stackset-asset-test/integstacksetassettestassetstacksetB1BE16AD-AssetBucketDeployment-0/CustomResource/Default",
                     "constructInfo": {
                       "fqn": "aws-cdk-lib.CfnResource",
                       "version": "2.108.0"
@@ -683,7 +684,7 @@
                                           {
                                             "Ref": "AWS::Partition"
                                           },
-                                          ":s3:::integ-assets"
+                                          ":s3:::asset-bucket-us-east-1"
                                         ]
                                       ]
                                     },
@@ -695,7 +696,7 @@
                                           {
                                             "Ref": "AWS::Partition"
                                           },
-                                          ":s3:::integ-assets/*"
+                                          ":s3:::asset-bucket-us-east-1/*"
                                         ]
                                       ]
                                     }
@@ -809,15 +810,15 @@
                 "attributes": {
                   "aws:cdk:cloudformation:type": "AWS::CloudFormation::StackSet",
                   "aws:cdk:cloudformation:props": {
-                    "autoDeployment": {
-                      "enabled": true,
-                      "retainStacksOnAccountRemoval": true
-                    },
-                    "callAs": "SELF",
+                    "administrationRoleArn": "arn:aws:iam::12345678:role/AWSCloudFormationStackSetAdministrationRole-integ-test",
+                    "capabilities": [
+                      "CAPABILITY_IAM"
+                    ],
+                    "executionRoleName": "AWSCloudFormationStackSetExecutionRole-integ-test",
                     "managedExecution": {
                       "Active": true
                     },
-                    "permissionModel": "SERVICE_MANAGED",
+                    "permissionModel": "SELF_MANAGED",
                     "stackInstancesGroup": [
                       {
                         "regions": [
@@ -826,8 +827,7 @@
                         "deploymentTargets": {
                           "accounts": [
                             "12345678"
-                          ],
-                          "accountFilterType": "INTERSECTION"
+                          ]
                         }
                       }
                     ],
@@ -883,7 +883,7 @@
                 "path": "integ-test/DefaultTest/Default",
                 "constructInfo": {
                   "fqn": "constructs.Construct",
-                  "version": "10.0.5"
+                  "version": "10.5.1"
                 }
               },
               "DeployAssert": {
@@ -915,13 +915,13 @@
             },
             "constructInfo": {
               "fqn": "@aws-cdk/integ-tests-alpha.IntegTestCase",
-              "version": "2.109.0-alpha.0"
+              "version": "2.108.0-alpha.0"
             }
           }
         },
         "constructInfo": {
           "fqn": "@aws-cdk/integ-tests-alpha.IntegTest",
-          "version": "2.109.0-alpha.0"
+          "version": "2.108.0-alpha.0"
         }
       },
       "Tree": {
@@ -929,7 +929,7 @@
         "path": "Tree",
         "constructInfo": {
           "fqn": "constructs.Construct",
-          "version": "10.0.5"
+          "version": "10.5.1"
         }
       }
     },
