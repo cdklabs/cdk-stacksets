@@ -156,7 +156,7 @@ class AssetTestCase extends Stack {
         executionRoleName: props.executionRole.roleName,
         adminRole: props.adminRole,
       }),
-      capabilities: [stacksets.Capability.IAM]
+      capabilities: [stacksets.Capability.IAM],
     });
 
   }
