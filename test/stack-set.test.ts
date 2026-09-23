@@ -1,3 +1,4 @@
+import fs from 'fs';
 import path from 'path';
 import {
   App, Stack, aws_lambda as lambda, aws_s3 as s3,
@@ -762,5 +763,69 @@ test('GovCloud partition - self managed stackset with specific environment', () 
         },
       ],
     },
+  });
+});
+
+test('lambda asset bucket name resolves the region dynamically in the stackset template', () => {
+  const app = new App({
+    context: {
+      [cxapi.ASSET_RESOURCE_METADATA_ENABLED_CONTEXT]: true,
+    },
+  });
+  const stack = new Stack(app);
+  const lambdaStack = new LambdaStackSet(stack, 'LambdaStack', {
+    assetBuckets: [s3.Bucket.fromBucketName(stack, 'AssetBucket', 'integ-assets')],
+    assetBucketPrefix: 'prefix',
+  });
+
+  new StackSet(stack, 'StackSet', {
+    target: StackSetTarget.fromAccounts({
+      regions: ['us-east-1'],
+      accounts: ['11111111111'],
+    }),
+    template: StackSetTemplate.fromStackSetStack(lambdaStack),
+    capabilities: [Capability.IAM, Capability.NAMED_IAM],
+  });
+
+  const assembly = app.synth();
+  const stackSetTemplate = JSON.parse(
+    fs.readFileSync(path.join(assembly.directory, lambdaStack.templateFile), 'utf-8'),
+  );
+
+  Template.fromJSON(stackSetTemplate).hasResourceProperties('AWS::Lambda::Function', {
+    Code: {
+      S3Bucket: {
+        'Fn::Join': ['-', ['prefix', { Ref: 'AWS::Region' }]],
+      },
+    },
+  });
+});
+
+test('lambda asset is staged to the parent asset bucket and copied via bucket deployment', () => {
+  const app = new App({
+    context: {
+      [cxapi.ASSET_RESOURCE_METADATA_ENABLED_CONTEXT]: true,
+    },
+  });
+  const stack = new Stack(app);
+  const lambdaStack = new LambdaStackSet(stack, 'LambdaStack', {
+    assetBuckets: [s3.Bucket.fromBucketName(stack, 'AssetBucket', 'integ-assets')],
+    assetBucketPrefix: 'prefix',
+  });
+
+  new StackSet(stack, 'StackSet', {
+    target: StackSetTarget.fromAccounts({
+      regions: ['us-east-1'],
+      accounts: ['11111111111'],
+    }),
+    template: StackSetTemplate.fromStackSetStack(lambdaStack),
+    capabilities: [Capability.IAM, Capability.NAMED_IAM],
+  });
+
+  Template.fromStack(stack).hasResourceProperties('Custom::CDKBucketDeployment', {
+    SourceBucketNames: [
+      { 'Fn::Sub': 'cdk-hnb659fds-assets-${AWS::AccountId}-${AWS::Region}' },
+    ],
+    DestinationBucketName: 'integ-assets',
   });
 });
