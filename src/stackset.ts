@@ -238,6 +238,10 @@ export abstract class StackSetTarget {
 class AccountsTarget extends StackSetTarget {
   constructor(private readonly options: AccountsTargetOptions) {
     super();
+
+    if (!this.options.accounts || this.options.accounts.length === 0) {
+      throw new Error('fromAccounts requires at least one account');
+    }
   }
 
   public _bind(_scope: Construct, _options: TargetBindOptions = {}): StackSetTargetConfig {
@@ -251,30 +255,40 @@ class AccountsTarget extends StackSetTarget {
 }
 
 class OrganizationsTarget extends StackSetTarget {
+  private readonly additionalAccounts?: string[];
+  private readonly excludeAccounts?: string[];
+  private readonly intersectionAccounts?: string[];
+
   constructor(private readonly options: OrganizationsTargetOptions) {
     super();
-  }
 
-  public _bind(_scope: Construct, _options: TargetBindOptions = {}): StackSetTargetConfig {
+    // Normalize empty arrays to undefined — empty arrays are truthy in JS
+    // but CloudFormation requires at least one item for account lists.
+    this.additionalAccounts = this.options.additionalAccounts?.length ? this.options.additionalAccounts : undefined;
+    this.excludeAccounts = this.options.excludeAccounts?.length ? this.options.excludeAccounts : undefined;
+    this.intersectionAccounts = this.options.intersectionAccounts?.length ? this.options.intersectionAccounts : undefined;
+
     const specified = [
-      this.options.additionalAccounts,
-      this.options.excludeAccounts,
-      this.options.intersectionAccounts,
+      this.additionalAccounts,
+      this.excludeAccounts,
+      this.intersectionAccounts,
     ].filter(Boolean).length;
     if (specified > 1) {
       throw new Error("specify at most one of 'additionalAccounts', 'excludeAccounts', or 'intersectionAccounts'");
     }
+  }
 
-    const filterType = this.options.additionalAccounts ? AccountFilterType.UNION
-      : this.options.excludeAccounts ? AccountFilterType.DIFFERENCE
-        : this.options.intersectionAccounts ? AccountFilterType.INTERSECTION
+  public _bind(_scope: Construct, _options: TargetBindOptions = {}): StackSetTargetConfig {
+    const filterType = this.additionalAccounts ? AccountFilterType.UNION
+      : this.excludeAccounts ? AccountFilterType.DIFFERENCE
+        : this.intersectionAccounts ? AccountFilterType.INTERSECTION
           : AccountFilterType.NONE;
     return {
       regions: this.options.regions,
       parameterOverrides: this._renderParameters(this.options.parameterOverrides),
       accountFilterType: filterType,
       organizationalUnits: this.options.organizationalUnits,
-      accounts: this.options.additionalAccounts ?? this.options.excludeAccounts ?? this.options.intersectionAccounts,
+      accounts: this.additionalAccounts ?? this.excludeAccounts ?? this.intersectionAccounts,
     };
   }
 }
