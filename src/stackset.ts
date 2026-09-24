@@ -239,8 +239,6 @@ class AccountsTarget extends StackSetTarget {
   constructor(private readonly options: AccountsTargetOptions) {
     super();
 
-    // Validated here rather than in `_bind` so that a misconfigured target
-    // fails as early as possible, i.e. at construction time.
     if (!this.options.accounts || this.options.accounts.length === 0) {
       throw new Error('fromAccounts requires at least one account');
     }
@@ -270,9 +268,6 @@ class OrganizationsTarget extends StackSetTarget {
     this.excludeAccounts = this.options.excludeAccounts?.length ? this.options.excludeAccounts : undefined;
     this.intersectionAccounts = this.options.intersectionAccounts?.length ? this.options.intersectionAccounts : undefined;
 
-    // Validated here rather than in `_bind` so that a misconfigured target
-    // fails as early as possible, i.e. at construction time. The normalization
-    // above has to run first so empty arrays are not counted as specified.
     const specified = [
       this.additionalAccounts,
       this.excludeAccounts,
