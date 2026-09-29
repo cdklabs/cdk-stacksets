@@ -12,7 +12,7 @@ import {
   Names,
   Lazy,
   FileAssetPackaging,
-  App,
+  Stage,
   Resource,
   Annotations,
   Fn,
@@ -82,8 +82,12 @@ export class StackSetStackSynthesizer extends StackSynthesizer {
       throw new Error('Asset filename is undefined');
     }
 
-    const outdir = App.of(this.boundStack)?.outdir ?? 'cdk.out';
-    const assetPath = `${outdir}/${asset.fileName}`;
+    // `asset.fileName` comes from `AssetStaging.relativeStagedPath()`, which makes the path
+    // relative to the outdir of the enclosing stage. That stage is the app itself when the stack
+    // has no stage of its own. A nested stage writes its manifest to a subdirectory of the app
+    // outdir but keeps the asset bytes in the app outdir, so the name carries a `..` prefix.
+    const outdir = Stage.of(this.boundStack)?.outdir ?? 'cdk.out';
+    const assetPath = path.resolve(outdir, asset.fileName);
 
     for (const assetBucket of this.assetBuckets) {
       const index = this.assetBuckets.indexOf(assetBucket);
