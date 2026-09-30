@@ -15,6 +15,7 @@ import {
   Resource,
   Annotations,
   Fn,
+  Aws,
 } from 'aws-cdk-lib';
 import { Bucket, IBucket } from 'aws-cdk-lib/aws-s3';
 import { BucketDeployment, Source } from 'aws-cdk-lib/aws-s3-deployment';
@@ -130,13 +131,9 @@ export class StackSetStackSynthesizer extends StackSynthesizer {
       }
     }
 
-    // Use Fn.ref('AWS::Region') so the bucket name resolves dynamically at deployment time
-    // in each target region, not at synthesis time (which would hardcode the parent stack's region)
-    const bucketName = Fn.join('-', [this.assetBucketPrefix, Fn.ref('AWS::Region')]);
-
-    const assetFileBaseName = path.basename(asset.fileName);
-    const s3Filename = assetFileBaseName.split('.')[1] + '.zip';
-    const objectKey = `${s3Filename}`;
+    // Resolve the bucket per target region at deploy time
+    const bucketName = Fn.join('-', [this.assetBucketPrefix, Aws.REGION]);
+    const objectKey = parentLocation.objectKey;
     const s3ObjectUrl = `s3://${bucketName}/${objectKey}`;
     const httpUrl = `https://s3.${bucketName}/${objectKey}`;
 

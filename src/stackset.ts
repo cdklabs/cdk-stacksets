@@ -7,6 +7,7 @@ import {
   Resource,
   Stack,
 } from 'aws-cdk-lib';
+import { RegionInfo } from 'aws-cdk-lib/region-info';
 import { Construct } from 'constructs';
 import { StackSetStack, fileAssetResourceNames } from './stackset-stack';
 
@@ -645,44 +646,6 @@ export interface IStackSet extends IResource {
   readonly role?: iam.IRole;
 }
 
-/**
- * AWS Regions introduced after March 20, 2019, such as Asia Pacific (Hong Kong), are disabled by default.
- * Be aware that to deploy stack instances into a target account that resides in a Region that's disabled by default,
- * you will also need to include the regional service principal for that Region.
- * Each Region that's disabled by default will have its own regional service principal.
- */
-const ENABLED_REGIONS = [
-  'us-east-1', // US East (N. Virginia)
-  'eu-west-1', // Europe (Ireland)
-  'us-west-1', // US West (N. California)
-  'ap-southeast-1', // Asia Pacific (Singapore)
-  'ap-northeast-1', // Asia Pacific (Tokyo)
-  'us-gov-west-1', // AWS GovCloud (US-West)
-  'us-west-2', // US West (Oregon)
-  'sa-east-1', // South America (São Paulo)
-  'ap-southeast-2', // Asia Pacific (Sydney)
-  'cn-north-1', // China (Beijing)
-  'eu-central-1', // Europe (Frankfurt)
-  'ap-northeast-2', // Asia Pacific (Seoul)
-  'ap-south-1', // Asia Pacific (Mumbai)
-  'us-east-2', // US East (Ohio)
-  'ca-central-1', // Canada (Central)
-  'eu-west-2', // Europe (London)
-  'cn-northwest-1', // China (Ningxia)
-  'eu-west-3', // Europe (Paris)
-  'ap-northeast-3', // Asia Pacific (Osaka)
-  'us-gov-east-1', // AWS GovCloud (US-East)
-  'eu-north-1', // Europe (Stockholm)
-  'eu-south-2', // Europe (Spain)
-];
-
-// disabled regions
-// 'af-south-1', // Africa (Cape Town)
-// 'ap-southeast-3', // Asia Pacific (Jakarta)
-// 'ap-east-1', // Asia Pacific (Hong Kong)
-// 'eu-south-1', // Europe (Milan)
-// 'me-south-1', // Middle East (Bahrain)
-
 export class StackSet extends Resource implements IStackSet {
   private readonly stackInstances: cfn.CfnStackSet.StackInstancesProperty[] = [];
 
@@ -792,8 +755,8 @@ export class StackSet extends Resource implements IStackSet {
     if (this._role && this._role instanceof iam.Role) {
       const disabledPrincipals: iam.IPrincipal[] = [];
       targetConfig.regions.forEach(region => {
-        if (!ENABLED_REGIONS.includes(region)) {
-          disabledPrincipals.push(new iam.ServicePrincipal(`cloudformation.${region}.${Stack.of(this).urlSuffix}`));
+        if (RegionInfo.get(region).isOptInRegion) {
+          disabledPrincipals.push(new iam.ServicePrincipal(`cloudformation.${region}.amazonaws.com`));
         }
       });
       if (disabledPrincipals.length > 0) {

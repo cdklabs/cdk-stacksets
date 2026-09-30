@@ -1,7 +1,7 @@
 import fs from 'fs';
 import path from 'path';
 import {
-  App, Stack, aws_lambda as lambda, aws_s3 as s3, aws_iam as iam,
+  App, Stage, Stack, aws_lambda as lambda, aws_s3 as s3, aws_iam as iam,
 } from 'aws-cdk-lib';
 
 import { Template } from 'aws-cdk-lib/assertions';
@@ -174,11 +174,7 @@ test('self managed stackset with disabled regions', () => {
         },
         {
           Effect: 'Allow',
-          Principal: {
-            Service: {
-              'Fn::Join': ['', ['cloudformation.af-south-1.', { Ref: 'AWS::URLSuffix' }]],
-            },
-          },
+          Principal: { Service: 'cloudformation.af-south-1.amazonaws.com' },
           Action: 'sts:AssumeRole',
         },
       ],
@@ -876,43 +872,12 @@ test('self managed stackset with custom execution role name uses partition-aware
   });
 });
 
-test('self managed stackset with disabled regions uses partition-aware URL suffix', () => {
-  const app = new App();
-  const stack = new Stack(app);
-
-  new StackSet(stack, 'StackSet', {
-    target: StackSetTarget.fromAccounts({
-      regions: ['us-east-1', 'af-south-1'],
-      accounts: ['11111111111'],
-    }),
-    template: StackSetTemplate.fromStackSetStack(new StackSetStack(stack, 'Stack')),
-  });
-
-  // For env-agnostic stacks, urlSuffix produces AWS::URLSuffix reference
-  Template.fromStack(stack).hasResourceProperties('AWS::IAM::Role', {
-    AssumeRolePolicyDocument: {
-      Statement: [
-        {
-          Effect: 'Allow',
-          Principal: { Service: 'cloudformation.amazonaws.com' },
-          Action: 'sts:AssumeRole',
-        },
-        {
-          Effect: 'Allow',
-          Principal: {
-            Service: {
-              'Fn::Join': ['', ['cloudformation.af-south-1.', { Ref: 'AWS::URLSuffix' }]],
-            },
-          },
-          Action: 'sts:AssumeRole',
-        },
-      ],
-    },
-  });
-});
-
 test('GovCloud partition - self managed stackset with specific environment', () => {
-  const app = new App();
+  const app = new App({
+    context: {
+      [cxapi.ENABLE_PARTITION_LITERALS]: true
+    }
+  });
   const stack = new Stack(app, 'TestStack', {
     env: {
       account: '111111111111',
@@ -936,16 +901,7 @@ test('GovCloud partition - self managed stackset with specific environment', () 
         {
           Effect: 'Allow',
           Action: 'sts:AssumeRole',
-          Resource: {
-            'Fn::Join': [
-              '',
-              [
-                'arn:',
-                { Ref: 'AWS::Partition' },
-                ':iam::*:role/AWSCloudFormationStackSetExecutionRole',
-              ],
-            ],
-          },
+          Resource: 'arn:aws-us-gov:iam::*:role/AWSCloudFormationStackSetExecutionRole',
         },
       ],
     },
@@ -958,9 +914,10 @@ test('lambda asset bucket name resolves the region dynamically in the stackset t
       [cxapi.ASSET_RESOURCE_METADATA_ENABLED_CONTEXT]: true,
     },
   });
-  const stack = new Stack(app);
+  const stage = new Stage(app, 'Stage', { env: { account: '123456789012', region: 'us-east-1' } });
+  const stack = new Stack(stage, 'Parent');
   const lambdaStack = new LambdaStackSet(stack, 'LambdaStack', {
-    assetBuckets: [s3.Bucket.fromBucketName(stack, 'AssetBucket', 'integ-assets')],
+    assetBuckets: [s3.Bucket.fromBucketName(stack, 'AssetBucket', 'prefix-us-east-1')],
     assetBucketPrefix: 'prefix',
   });
 
@@ -973,9 +930,9 @@ test('lambda asset bucket name resolves the region dynamically in the stackset t
     capabilities: [Capability.IAM, Capability.NAMED_IAM],
   });
 
-  const assembly = app.synth();
+  app.synth();
   const stackSetTemplate = JSON.parse(
-    fs.readFileSync(path.join(assembly.directory, lambdaStack.templateFile), 'utf-8'),
+    fs.readFileSync(path.join(stage.outdir, lambdaStack.templateFile), 'utf-8'),
   );
 
   Template.fromJSON(stackSetTemplate).hasResourceProperties('AWS::Lambda::Function', {

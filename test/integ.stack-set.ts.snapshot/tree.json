@@ -66,13 +66,39 @@
               "version": "2.108.0"
             }
           },
+          "BootstrapVersion": {
+            "id": "BootstrapVersion",
+            "path": "integ-stack-set-support/BootstrapVersion",
+            "constructInfo": {
+              "fqn": "aws-cdk-lib.CfnParameter",
+              "version": "2.108.0"
+            }
+          },
+          "CheckBootstrapVersion": {
+            "id": "CheckBootstrapVersion",
+            "path": "integ-stack-set-support/CheckBootstrapVersion",
+            "constructInfo": {
+              "fqn": "aws-cdk-lib.CfnRule",
+              "version": "2.108.0"
+            }
+          }
+        },
+        "constructInfo": {
+          "fqn": "aws-cdk-lib.Stack",
+          "version": "2.108.0"
+        }
+      },
+      "integ-stackset-test": {
+        "id": "integ-stackset-test",
+        "path": "integ-stackset-test",
+        "children": {
           "AdminRole": {
             "id": "AdminRole",
-            "path": "integ-stack-set-support/AdminRole",
+            "path": "integ-stackset-test/AdminRole",
             "children": {
               "ImportAdminRole": {
                 "id": "ImportAdminRole",
-                "path": "integ-stack-set-support/AdminRole/ImportAdminRole",
+                "path": "integ-stackset-test/AdminRole/ImportAdminRole",
                 "constructInfo": {
                   "fqn": "aws-cdk-lib.Resource",
                   "version": "2.108.0"
@@ -80,7 +106,7 @@
               },
               "Resource": {
                 "id": "Resource",
-                "path": "integ-stack-set-support/AdminRole/Resource",
+                "path": "integ-stackset-test/AdminRole/Resource",
                 "attributes": {
                   "aws:cdk:cloudformation:type": "AWS::IAM::Role",
                   "aws:cdk:cloudformation:props": {
@@ -121,11 +147,11 @@
               },
               "DefaultPolicy": {
                 "id": "DefaultPolicy",
-                "path": "integ-stack-set-support/AdminRole/DefaultPolicy",
+                "path": "integ-stackset-test/AdminRole/DefaultPolicy",
                 "children": {
                   "Resource": {
                     "id": "Resource",
-                    "path": "integ-stack-set-support/AdminRole/DefaultPolicy/Resource",
+                    "path": "integ-stackset-test/AdminRole/DefaultPolicy/Resource",
                     "attributes": {
                       "aws:cdk:cloudformation:type": "AWS::IAM::Policy",
                       "aws:cdk:cloudformation:props": {
@@ -142,10 +168,7 @@
                                     {
                                       "Ref": "AWS::Partition"
                                     },
-                                    ":iam::*:role/",
-                                    {
-                                      "Ref": "CfnExecutionRole87CC388E"
-                                    }
+                                    ":iam::*:role/AWSCloudFormationStackSetExecutionRole-integ-test"
                                   ]
                                 ]
                               }
@@ -178,32 +201,6 @@
               "version": "2.108.0"
             }
           },
-          "BootstrapVersion": {
-            "id": "BootstrapVersion",
-            "path": "integ-stack-set-support/BootstrapVersion",
-            "constructInfo": {
-              "fqn": "aws-cdk-lib.CfnParameter",
-              "version": "2.108.0"
-            }
-          },
-          "CheckBootstrapVersion": {
-            "id": "CheckBootstrapVersion",
-            "path": "integ-stack-set-support/CheckBootstrapVersion",
-            "constructInfo": {
-              "fqn": "aws-cdk-lib.CfnRule",
-              "version": "2.108.0"
-            }
-          }
-        },
-        "constructInfo": {
-          "fqn": "aws-cdk-lib.Stack",
-          "version": "2.108.0"
-        }
-      },
-      "integ-stackset-test": {
-        "id": "integ-stackset-test",
-        "path": "integ-stackset-test",
-        "children": {
           "integ-stack-set": {
             "id": "integ-stack-set",
             "path": "integ-stackset-test/integ-stack-set",
@@ -246,7 +243,12 @@
                 "attributes": {
                   "aws:cdk:cloudformation:type": "AWS::CloudFormation::StackSet",
                   "aws:cdk:cloudformation:props": {
-                    "administrationRoleArn": "arn:aws:iam::12345678:role/AWSCloudFormationStackSetAdministrationRole-integ-test",
+                    "administrationRoleArn": {
+                      "Fn::GetAtt": [
+                        "AdminRole38563C57",
+                        "Arn"
+                      ]
+                    },
                     "executionRoleName": "AWSCloudFormationStackSetExecutionRole-integ-test",
                     "managedExecution": {
                       "Active": true
@@ -526,32 +528,6 @@
                 "path": "integ-stackset-asset-test/integstacksetassettestassetstacksetB1BE16AD-AssetBucketDeployment-0/CustomResourceHandler",
                 "constructInfo": {
                   "fqn": "aws-cdk-lib.aws_lambda.SingletonFunction",
-                  "version": "2.108.0"
-                }
-              },
-              "Asset1": {
-                "id": "Asset1",
-                "path": "integ-stackset-asset-test/integstacksetassettestassetstacksetB1BE16AD-AssetBucketDeployment-0/Asset1",
-                "children": {
-                  "Stage": {
-                    "id": "Stage",
-                    "path": "integ-stackset-asset-test/integstacksetassettestassetstacksetB1BE16AD-AssetBucketDeployment-0/Asset1/Stage",
-                    "constructInfo": {
-                      "fqn": "aws-cdk-lib.AssetStaging",
-                      "version": "2.108.0"
-                    }
-                  },
-                  "AssetBucket": {
-                    "id": "AssetBucket",
-                    "path": "integ-stackset-asset-test/integstacksetassettestassetstacksetB1BE16AD-AssetBucketDeployment-0/Asset1/AssetBucket",
-                    "constructInfo": {
-                      "fqn": "aws-cdk-lib.aws_s3.BucketBase",
-                      "version": "2.108.0"
-                    }
-                  }
-                },
-                "constructInfo": {
-                  "fqn": "aws-cdk-lib.aws_s3_assets.Asset",
                   "version": "2.108.0"
                 }
               },
@@ -931,7 +907,18 @@
                             {
                               "Action": "sts:AssumeRole",
                               "Effect": "Allow",
-                              "Resource": "arn:aws:iam::*:role/AWSCloudFormationStackSetExecutionRole-integ-test"
+                              "Resource": {
+                                "Fn::Join": [
+                                  "",
+                                  [
+                                    "arn:",
+                                    {
+                                      "Ref": "AWS::Partition"
+                                    },
+                                    ":iam::*:role/AWSCloudFormationStackSetExecutionRole-integ-test"
+                                  ]
+                                ]
+                              }
                             }
                           ],
                           "Version": "2012-10-17"
