@@ -1,6 +1,6 @@
 import path from 'path';
 import {
-  App, Stack, aws_lambda as lambda, aws_s3 as s3,
+  App, Stack, aws_lambda as lambda, aws_s3 as s3, aws_iam as iam,
 } from 'aws-cdk-lib';
 
 import { Template } from 'aws-cdk-lib/assertions';
@@ -784,10 +784,23 @@ test('test stackset depends on role', () => {
     ),
   });
 
-  const role = Template.fromStack(stack).findResources('AWS::IAM::Role');
-  const defaultPolicy = Template.fromStack(stack).findResources('AWS::IAM::Policy');
-
   Template.fromStack(stack).hasResource('AWS::CloudFormation::StackSet', {
-    DependsOn: [Object.keys(defaultPolicy)[0], Object.keys(role)[0]],
+    DependsOn: ['AdminRoleDefaultPolicy1C2AB961', 'AdminRole38563C57'],
+  });
+});
+
+test('self managed stackset depends on the policy added to a supplied admin role', () => {
+  const app = new App();
+  const stack = new Stack(app);
+  const adminRole = iam.Role.fromRoleArn(stack, 'AdminRole', 'arn:aws:iam::123456789012:role/StackSetAdmin');
+
+  new StackSet(stack, 'StackSet', {
+    template: StackSetTemplate.fromStackSetStack(new StackSetStack(stack, 'Stack')),
+    deploymentType: DeploymentType.selfManaged({ adminRole }),
+  });
+
+  const template = Template.fromStack(stack);
+  template.hasResource('AWS::CloudFormation::StackSet', {
+    DependsOn: ['AdminRolePolicyB2FE8449'],
   });
 });
