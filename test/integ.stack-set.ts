@@ -20,7 +20,7 @@ import * as stacksets from '../src';
  *
  * - 2 accounts:
  *  - A "deployment" account which will be the account that the test case runs in and
- *    deploys the stackset
+ *    deploys the stackset. It must have the asset s3 bucket named `asset-bucket-${deploymentAccount}-${targetRegion}`.
  *  - A "target" account which is where the stackset will deploy into
  *
  * - The target account must be bootstrapped to trust the deployment account
@@ -133,12 +133,12 @@ class TestCase extends Stack {
  * Create the stack which will create the StackSet resource
  */
 class AssetTestCase extends Stack {
-  constructor(scope: Construct, id: string) {
+  constructor(scope: Construct, id: string, props: TestCaseProps) {
     super(scope, id);
 
     const stackSetStack = new LambdaStackSet(this, 'asset-stack-set', {
-      assetBuckets: [s3.Bucket.fromBucketName(this, 'AssetBucket', 'integ-assets')],
-      assetBucketPrefix: 'asset-bucket',
+      assetBuckets: [s3.Bucket.fromBucketName(this, 'AssetBucket', `asset-bucket-${deploymentAccount}-${targetRegion}`)],
+      assetBucketPrefix: `asset-bucket-${deploymentAccount}`,
     });
     new stacksets.StackSet(this, 'StackSet', {
       target: stacksets.StackSetTarget.fromAccounts({
@@ -146,7 +146,10 @@ class AssetTestCase extends Stack {
         regions: [targetRegion],
       }),
       template: stacksets.StackSetTemplate.fromStackSetStack(stackSetStack),
-      deploymentType: stacksets.DeploymentType.serviceManaged({ delegatedAdmin: false }),
+      deploymentType: stacksets.DeploymentType.selfManaged({
+        executionRoleName: props.executionRole.roleName,
+      }),
+      capabilities: [stacksets.Capability.IAM],
     });
 
   }
@@ -169,7 +172,11 @@ const testCase = new TestCase(app, 'integ-stackset-test', {
 
 testCase.addDependency(supportStack);
 
-const assetTestCase = new AssetTestCase(app, 'integ-stackset-asset-test');
+const assetTestCase = new AssetTestCase(app, 'integ-stackset-asset-test', {
+  executionRole: supportStack.executionRole,
+});
+
+assetTestCase.addDependency(supportStack);
 
 new IntegTest(app, 'integ-test', {
   testCases: [testCase, assetTestCase],

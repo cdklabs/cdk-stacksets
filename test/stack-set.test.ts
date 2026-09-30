@@ -1,6 +1,6 @@
 import path from 'path';
 import {
-  App, Stack, aws_lambda as lambda, aws_s3 as s3,
+  App, Stack, aws_lambda as lambda, aws_s3 as s3, aws_iam as iam,
 } from 'aws-cdk-lib';
 
 import { Template } from 'aws-cdk-lib/assertions';
@@ -765,4 +765,42 @@ test('fromAccounts with empty array throws', () => {
       template: StackSetTemplate.fromStackSetStack(new StackSetStack(stack, 'Stack')),
     });
   }).toThrow('fromAccounts requires at least one account');
+});
+
+test('test stackset depends on role', () => {
+  const app = new App();
+  const stack = new Stack(app);
+
+  new StackSet(stack, 'StackSet', {
+    target: StackSetTarget.fromAccounts({
+      regions: ['us-east-1'],
+      accounts: ['11111111111'],
+      parameterOverrides: {
+        Param1: 'Value1',
+      },
+    }),
+    template: StackSetTemplate.fromStackSetStack(
+      new StackSetStack(stack, 'Stack'),
+    ),
+  });
+
+  Template.fromStack(stack).hasResource('AWS::CloudFormation::StackSet', {
+    DependsOn: ['AdminRoleDefaultPolicy1C2AB961', 'AdminRole38563C57'],
+  });
+});
+
+test('self managed stackset depends on the policy added to a supplied admin role', () => {
+  const app = new App();
+  const stack = new Stack(app);
+  const adminRole = iam.Role.fromRoleArn(stack, 'AdminRole', 'arn:aws:iam::123456789012:role/StackSetAdmin');
+
+  new StackSet(stack, 'StackSet', {
+    template: StackSetTemplate.fromStackSetStack(new StackSetStack(stack, 'Stack')),
+    deploymentType: DeploymentType.selfManaged({ adminRole }),
+  });
+
+  const template = Template.fromStack(stack);
+  template.hasResource('AWS::CloudFormation::StackSet', {
+    DependsOn: ['AdminRolePolicyB2FE8449'],
+  });
 });
