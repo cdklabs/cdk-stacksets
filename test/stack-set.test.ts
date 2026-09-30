@@ -875,8 +875,8 @@ test('self managed stackset with custom execution role name uses partition-aware
 test('GovCloud partition - self managed stackset with specific environment', () => {
   const app = new App({
     context: {
-      [cxapi.ENABLE_PARTITION_LITERALS]: true
-    }
+      [cxapi.ENABLE_PARTITION_LITERALS]: true,
+    },
   });
   const stack = new Stack(app, 'TestStack', {
     env: {
