@@ -16,6 +16,7 @@ import {
   Annotations,
   Fn,
   Aws,
+  Token,
 } from 'aws-cdk-lib';
 import { Bucket, IBucket } from 'aws-cdk-lib/aws-s3';
 import { BucketDeployment, Source } from 'aws-cdk-lib/aws-s3-deployment';
@@ -97,7 +98,7 @@ export class StackSetStackSynthesizer extends StackSynthesizer {
       );
     }
 
-    // Use Source.bucket() to reference the asset from S3 (avoids timing issue with local files)
+    // Copy the object the parent synthesizer publishes, instead of re-staging a local path
     const source = Source.bucket(this.parentAssetBucket, parentLocation.objectKey);
 
     for (const assetBucket of this.assetBuckets) {
@@ -133,7 +134,10 @@ export class StackSetStackSynthesizer extends StackSynthesizer {
 
     // Resolve the bucket per target region at deploy time
     const bucketName = Fn.join('-', [this.assetBucketPrefix, Aws.REGION]);
-    const objectKey = parentLocation.objectKey;
+    // BucketDeployment (extract: false) copies each object to the bucket root under its file name only.
+    // A token can't resolve during synth so rebuild the file name the way the asset manifest does.
+    const extension = asset.packaging === FileAssetPackaging.ZIP_DIRECTORY ? '.zip' : path.extname(asset.fileName);
+    const objectKey = Token.isUnresolved(parentLocation.objectKey) ? `${asset.sourceHash}${extension}` : path.posix.basename(parentLocation.objectKey);
     const s3ObjectUrl = `s3://${bucketName}/${objectKey}`;
     const httpUrl = `https://s3.${bucketName}/${objectKey}`;
 
