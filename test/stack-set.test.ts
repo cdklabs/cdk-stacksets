@@ -1,9 +1,12 @@
+import fs from 'fs';
 import path from 'path';
 import {
-  App, Stack, aws_lambda as lambda, aws_s3 as s3, aws_iam as iam,
+  App, CfnOutput, DefaultStackSynthesizer, Stack, StackSynthesizer, Stage,
+  aws_lambda as lambda, aws_s3 as s3, aws_iam as iam, aws_s3_assets as s3_assets,
 } from 'aws-cdk-lib';
 
 import { Template } from 'aws-cdk-lib/assertions';
+import { AwsCustomResource, AwsCustomResourcePolicy, PhysicalResourceId } from 'aws-cdk-lib/custom-resources';
 import * as cxapi from 'aws-cdk-lib/cx-api';
 import { Construct } from 'constructs';
 import { Capability, DeploymentType, RegionConcurrencyType, StackSet, StackSetTarget, StackSetTemplate } from '../src/stackset';
@@ -173,9 +176,7 @@ test('self managed stackset with disabled regions', () => {
         },
         {
           Effect: 'Allow',
-          Principal: {
-            Service: 'cloudformation.af-south-1.amazonaws.com',
-          },
+          Principal: { Service: 'cloudformation.af-south-1.amazonaws.com' },
           Action: 'sts:AssumeRole',
         },
       ],
@@ -802,5 +803,292 @@ test('self managed stackset depends on the policy added to a supplied admin role
   const template = Template.fromStack(stack);
   template.hasResource('AWS::CloudFormation::StackSet', {
     DependsOn: ['AdminRolePolicyB2FE8449'],
+  });
+});
+
+test('self managed stackset uses partition-aware ARN for execution role', () => {
+  const app = new App();
+  const stack = new Stack(app);
+
+  new StackSet(stack, 'StackSet', {
+    target: StackSetTarget.fromAccounts({
+      regions: ['us-east-1'],
+      accounts: ['11111111111'],
+    }),
+    template: StackSetTemplate.fromStackSetStack(new StackSetStack(stack, 'Stack')),
+  });
+
+  // For env-agnostic stacks, formatArn produces a Fn::Join with AWS::Partition
+  Template.fromStack(stack).hasResourceProperties('AWS::IAM::Policy', {
+    PolicyDocument: {
+      Statement: [
+        {
+          Effect: 'Allow',
+          Action: 'sts:AssumeRole',
+          Resource: {
+            'Fn::Join': [
+              '',
+              [
+                'arn:',
+                { Ref: 'AWS::Partition' },
+                ':iam::*:role/AWSCloudFormationStackSetExecutionRole',
+              ],
+            ],
+          },
+        },
+      ],
+    },
+  });
+});
+
+test('self managed stackset with custom execution role name uses partition-aware ARN', () => {
+  const app = new App();
+  const stack = new Stack(app);
+
+  new StackSet(stack, 'StackSet', {
+    target: StackSetTarget.fromAccounts({
+      regions: ['us-east-1'],
+      accounts: ['11111111111'],
+    }),
+    template: StackSetTemplate.fromStackSetStack(new StackSetStack(stack, 'Stack')),
+    deploymentType: DeploymentType.selfManaged({
+      executionRoleName: 'CustomExecutionRole',
+    }),
+  });
+
+  Template.fromStack(stack).hasResourceProperties('AWS::IAM::Policy', {
+    PolicyDocument: {
+      Statement: [
+        {
+          Effect: 'Allow',
+          Action: 'sts:AssumeRole',
+          Resource: {
+            'Fn::Join': [
+              '',
+              ['arn:', { Ref: 'AWS::Partition' }, ':iam::*:role/CustomExecutionRole'],
+            ],
+          },
+        },
+      ],
+    },
+  });
+});
+
+test('GovCloud partition - self managed stackset with specific environment', () => {
+  const app = new App({
+    context: {
+      [cxapi.ENABLE_PARTITION_LITERALS]: true,
+    },
+  });
+  const stack = new Stack(app, 'TestStack', {
+    env: {
+      account: '111111111111',
+      region: 'us-gov-west-1',
+    },
+  });
+
+  new StackSet(stack, 'StackSet', {
+    target: StackSetTarget.fromAccounts({
+      regions: ['us-gov-west-1'],
+      accounts: ['11111111111'],
+    }),
+    template: StackSetTemplate.fromStackSetStack(new StackSetStack(stack, 'Stack')),
+  });
+
+  // Verify that the ARN uses the correct partition for GovCloud (aws-us-gov)
+  Template.fromStack(stack).hasResourceProperties('AWS::IAM::Policy', {
+    PolicyDocument: {
+      Statement: [
+        {
+          Effect: 'Allow',
+          Action: 'sts:AssumeRole',
+          Resource: 'arn:aws-us-gov:iam::*:role/AWSCloudFormationStackSetExecutionRole',
+        },
+      ],
+    },
+  });
+});
+
+test('lambda asset bucket name resolves the region dynamically in the stackset template', () => {
+  const app = new App({
+    context: {
+      [cxapi.ASSET_RESOURCE_METADATA_ENABLED_CONTEXT]: true,
+    },
+  });
+  const stage = new Stage(app, 'Stage', { env: { account: '123456789012', region: 'us-east-1' } });
+  const stack = new Stack(stage, 'Parent');
+  const lambdaStack = new LambdaStackSet(stack, 'LambdaStack', {
+    assetBuckets: [s3.Bucket.fromBucketName(stack, 'AssetBucket', 'prefix-us-east-1')],
+    assetBucketPrefix: 'prefix',
+  });
+
+  new StackSet(stack, 'StackSet', {
+    target: StackSetTarget.fromAccounts({
+      regions: ['us-east-1'],
+      accounts: ['11111111111'],
+    }),
+    template: StackSetTemplate.fromStackSetStack(lambdaStack),
+    capabilities: [Capability.IAM, Capability.NAMED_IAM],
+  });
+
+  app.synth();
+  const stackSetTemplate = JSON.parse(
+    fs.readFileSync(path.join(stage.outdir, lambdaStack.templateFile), 'utf-8'),
+  );
+
+  Template.fromJSON(stackSetTemplate).hasResourceProperties('AWS::Lambda::Function', {
+    Code: {
+      S3Bucket: {
+        'Fn::Join': ['-', ['prefix', { Ref: 'AWS::Region' }]],
+      },
+    },
+  });
+});
+
+test('lambda asset is staged to the parent asset bucket and copied via bucket deployment', () => {
+  const app = new App({
+    context: {
+      [cxapi.ASSET_RESOURCE_METADATA_ENABLED_CONTEXT]: true,
+    },
+  });
+  const stack = new Stack(app);
+  const lambdaStack = new LambdaStackSet(stack, 'LambdaStack', {
+    assetBuckets: [s3.Bucket.fromBucketName(stack, 'AssetBucket', 'integ-assets')],
+    assetBucketPrefix: 'prefix',
+  });
+
+  new StackSet(stack, 'StackSet', {
+    target: StackSetTarget.fromAccounts({
+      regions: ['us-east-1'],
+      accounts: ['11111111111'],
+    }),
+    template: StackSetTemplate.fromStackSetStack(lambdaStack),
+    capabilities: [Capability.IAM, Capability.NAMED_IAM],
+  });
+
+  Template.fromStack(stack).hasResourceProperties('Custom::CDKBucketDeployment', {
+    SourceBucketNames: [
+      { 'Fn::Sub': 'cdk-hnb659fds-assets-${AWS::AccountId}-${AWS::Region}' },
+    ],
+    DestinationBucketName: 'integ-assets',
+  });
+});
+
+describe('StackSet template asset object keys', () => {
+  interface AssetKeysOptions {
+    readonly synthesizer?: StackSynthesizer;
+    readonly context?: Record<string, unknown>;
+    readonly addAssets: (scope: Construct) => void;
+  }
+
+  function addLambda(scope: Construct, id: string, code: lambda.Code) {
+    new lambda.Function(scope, id, {
+      runtime: lambda.Runtime.NODEJS_18_X,
+      handler: 'index.handler',
+      code,
+    });
+  }
+
+  function synthAssetKeys(options: AssetKeysOptions) {
+    const app = new App({ context: options.context });
+    const stack = new Stack(app, 'Parent', { synthesizer: options.synthesizer });
+    const stackSetStack = new StackSetStack(stack, 'AssetStack', {
+      assetBuckets: [s3.Bucket.fromBucketName(stack, 'AssetBucket', 'prefix-us-east-1')],
+      assetBucketPrefix: 'prefix',
+    });
+
+    options.addAssets(stackSetStack);
+
+    new StackSet(stack, 'StackSet', {
+      target: StackSetTarget.fromAccounts({
+        regions: ['us-east-1'],
+        accounts: ['11111111111'],
+      }),
+      template: StackSetTemplate.fromStackSetStack(stackSetStack),
+      capabilities: [Capability.IAM],
+    });
+
+    app.synth();
+    const stackSetTemplate = JSON.parse(
+      fs.readFileSync(path.join(Stage.of(stack)!.outdir, stackSetStack.templateFile), 'utf-8'),
+    );
+    const templateKeys = [
+      ...Object.values(Template.fromJSON(stackSetTemplate).findResources('AWS::Lambda::Function'))
+        .map((resource) => resource.Properties.Code.S3Key),
+      ...Object.values(stackSetTemplate.Outputs ?? {}).map((output: any) => output.Value),
+    ];
+    const parentTemplate = Template.fromStack(stack);
+    const sourceKeys = Object.values(parentTemplate.findResources('Custom::CDKBucketDeployment'))
+      .flatMap((resource) => resource.Properties.SourceObjectKeys);
+
+    return { templateKeys, sourceKeys, parentTemplate };
+  }
+
+  // The handler (extract: false) writes each source object under its file name only
+  function expectKeysMatchCopiedFileNames(templateKeys: string[], sourceKeys: string[]) {
+    expect(templateKeys.length).toBeGreaterThan(0);
+    expect([...templateKeys].sort()).toEqual(sourceKeys.map((key) => path.posix.basename(key)).sort());
+  }
+
+  test.each([
+    ['no bucket prefix', new DefaultStackSynthesizer()],
+    ['a bucket prefix with a slash', new DefaultStackSynthesizer({ bucketPrefix: 'assets/' })],
+    ['a bucket with deploy-time/ prefix', new DefaultStackSynthesizer({ bucketPrefix: 'deploy-time/' })],
+    ['a bucket prefix without a slash', new DefaultStackSynthesizer({ bucketPrefix: 'myapp-' })],
+  ])('reference the file names the bucket deployment copies to, with %s', (_name, synthesizer) => {
+    const { templateKeys, sourceKeys } = synthAssetKeys({
+      synthesizer,
+      addAssets: (scope) => {
+        addLambda(scope, 'Lambda', lambda.Code.fromAsset(path.join(__dirname, 'lambda'), { assetHash: 'custom-hash' }));
+        const script = new s3_assets.Asset(scope, 'Script', { path: path.join(__dirname, 'script.py') });
+        new CfnOutput(scope, 'ScriptKey', { value: script.s3ObjectKey });
+      },
+    });
+
+    expect(sourceKeys).toHaveLength(2);
+    expectKeysMatchCopiedFileNames(templateKeys, sourceKeys);
+    expect(templateKeys.some((key: string) => key.endsWith('.py'))).toBe(true);
+  });
+
+  test('reference the file names the bucket deployment copies to, with an AwsCustomResource handler', () => {
+    const { templateKeys, sourceKeys } = synthAssetKeys({
+      addAssets: (scope) => {
+        addLambda(scope, 'Lambda', lambda.Code.fromAsset(path.join(__dirname, 'lambda'), { assetHash: 'custom-hash' }));
+        new AwsCustomResource(scope, 'CustomResource', {
+          onCreate: {
+            service: 'S3',
+            action: 'listBuckets',
+            physicalResourceId: PhysicalResourceId.of('id'),
+          },
+          policy: AwsCustomResourcePolicy.fromSdkCalls({ resources: AwsCustomResourcePolicy.ANY_RESOURCE }),
+        });
+      },
+    });
+
+    expect(sourceKeys).toHaveLength(2);
+    expectKeysMatchCopiedFileNames(templateKeys, sourceKeys);
+  });
+
+  test('reference the file names the bucket deployment copies to, with asset staging disabled', () => {
+    const { templateKeys, sourceKeys } = synthAssetKeys({
+      context: { [cxapi.DISABLE_ASSET_STAGING_CONTEXT]: true },
+      addAssets: (scope) => addLambda(scope, 'Lambda', lambda.Code.fromAsset(path.join(__dirname, 'lambda'))),
+    });
+
+    expectKeysMatchCopiedFileNames(templateKeys, sourceKeys);
+  });
+
+  test('reference the file names the bucket deployment copies to, with bundling skipped', () => {
+    const { templateKeys, sourceKeys } = synthAssetKeys({
+      context: { [cxapi.BUNDLING_STACKS]: [] },
+      addAssets: (scope) => addLambda(scope, 'Lambda', lambda.Code.fromAsset(path.join(__dirname, 'lambda'), {
+        bundling: {
+          image: lambda.Runtime.NODEJS_18_X.bundlingImage,
+          command: ['bash', '-c', 'cp -r /asset-input/. /asset-output'],
+        },
+      })),
+    });
+
+    expectKeysMatchCopiedFileNames(templateKeys, sourceKeys);
   });
 });

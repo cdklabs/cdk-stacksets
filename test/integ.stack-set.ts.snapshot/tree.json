@@ -160,7 +160,18 @@
                             {
                               "Action": "sts:AssumeRole",
                               "Effect": "Allow",
-                              "Resource": "arn:aws:iam::*:role/AWSCloudFormationStackSetExecutionRole-integ-test"
+                              "Resource": {
+                                "Fn::Join": [
+                                  "",
+                                  [
+                                    "arn:",
+                                    {
+                                      "Ref": "AWS::Partition"
+                                    },
+                                    ":iam::*:role/AWSCloudFormationStackSetExecutionRole-integ-test"
+                                  ]
+                                ]
+                              }
                             }
                           ],
                           "Version": "2012-10-17"
@@ -437,6 +448,14 @@
                   "fqn": "aws-cdk-lib.aws_lambda.Function",
                   "version": "2.108.0"
                 }
+              },
+              "ParentAssetBucket": {
+                "id": "ParentAssetBucket",
+                "path": "integ-stackset-asset-test/asset-stack-set/ParentAssetBucket",
+                "constructInfo": {
+                  "fqn": "aws-cdk-lib.aws_s3.BucketBase",
+                  "version": "2.108.0"
+                }
               }
             },
             "constructInfo": {
@@ -509,32 +528,6 @@
                 "path": "integ-stackset-asset-test/integstacksetassettestassetstacksetB1BE16AD-AssetBucketDeployment-0/CustomResourceHandler",
                 "constructInfo": {
                   "fqn": "aws-cdk-lib.aws_lambda.SingletonFunction",
-                  "version": "2.108.0"
-                }
-              },
-              "Asset1": {
-                "id": "Asset1",
-                "path": "integ-stackset-asset-test/integstacksetassettestassetstacksetB1BE16AD-AssetBucketDeployment-0/Asset1",
-                "children": {
-                  "Stage": {
-                    "id": "Stage",
-                    "path": "integ-stackset-asset-test/integstacksetassettestassetstacksetB1BE16AD-AssetBucketDeployment-0/Asset1/Stage",
-                    "constructInfo": {
-                      "fqn": "aws-cdk-lib.AssetStaging",
-                      "version": "2.108.0"
-                    }
-                  },
-                  "AssetBucket": {
-                    "id": "AssetBucket",
-                    "path": "integ-stackset-asset-test/integstacksetassettestassetstacksetB1BE16AD-AssetBucketDeployment-0/Asset1/AssetBucket",
-                    "constructInfo": {
-                      "fqn": "aws-cdk-lib.aws_s3.BucketBase",
-                      "version": "2.108.0"
-                    }
-                  }
-                },
-                "constructInfo": {
-                  "fqn": "aws-cdk-lib.aws_s3_assets.Asset",
                   "version": "2.108.0"
                 }
               },
@@ -914,7 +907,18 @@
                             {
                               "Action": "sts:AssumeRole",
                               "Effect": "Allow",
-                              "Resource": "arn:aws:iam::*:role/AWSCloudFormationStackSetExecutionRole-integ-test"
+                              "Resource": {
+                                "Fn::Join": [
+                                  "",
+                                  [
+                                    "arn:",
+                                    {
+                                      "Ref": "AWS::Partition"
+                                    },
+                                    ":iam::*:role/AWSCloudFormationStackSetExecutionRole-integ-test"
+                                  ]
+                                ]
+                              }
                             }
                           ],
                           "Version": "2012-10-17"

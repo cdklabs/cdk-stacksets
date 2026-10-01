@@ -41,7 +41,18 @@
       {
        "Action": "sts:AssumeRole",
        "Effect": "Allow",
-       "Resource": "arn:aws:iam::*:role/AWSCloudFormationStackSetExecutionRole-integ-test"
+       "Resource": {
+        "Fn::Join": [
+         "",
+         [
+          "arn:",
+          {
+           "Ref": "AWS::Partition"
+          },
+          ":iam::*:role/AWSCloudFormationStackSetExecutionRole-integ-test"
+         ]
+        ]
+       }
       }
      ],
      "Version": "2012-10-17"
