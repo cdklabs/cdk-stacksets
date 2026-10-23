@@ -909,6 +909,20 @@ test('GovCloud partition - self managed stackset with specific environment', () 
   });
 });
 
+test('stackset templates do not include CDK metadata', () => {
+  const app = new App();
+  const stack = new Stack(app, 'Parent');
+  const stackSetStack = new StackSetStack(stack, 'Child');
+
+  app.synth();
+
+  const stackSetTemplate = JSON.parse(
+    fs.readFileSync(path.join(Stage.of(stack)!.outdir, stackSetStack.templateFile), 'utf-8'),
+  );
+
+  Template.fromJSON(stackSetTemplate).resourceCountIs('AWS::CDK::Metadata', 0);
+});
+
 test('lambda asset bucket name resolves the region dynamically in the stackset template', () => {
   const app = new App({
     context: {
