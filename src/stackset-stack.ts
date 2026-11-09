@@ -199,6 +199,9 @@ export class StackSetStack extends Stack {
    */
   constructor(scope: Construct, id: string, props: StackSetStackProps = {}) {
     super(scope, id, {
+      // StackSets validate every resource type before evaluating conditions. CDK's
+      // conditional metadata resource therefore cannot safely be used here.
+      analyticsReporting: false,
       synthesizer: new StackSetStackSynthesizer(props.assetBuckets, props.assetBucketPrefix),
     });
 
