@@ -4,7 +4,7 @@
 
 ### StackSet <a name="StackSet" id="cdk-stacksets.StackSet"></a>
 
-- *Implements:* <a href="#cdk-stacksets.IStackSet">IStackSet</a>
+- *Implements:* constructs.IConstruct, constructs.IDependable, aws-cdk-lib.IResource, <a href="#cdk-stacksets.IStackSet">IStackSet</a>
 
 #### Initializers <a name="Initializers" id="cdk-stacksets.StackSet.Initializer"></a>
 
@@ -276,6 +276,8 @@ a policy that allows `iam:GetRole` & `iam:PassRole` on this role resource.
 
 
 ### StackSetStack <a name="StackSetStack" id="cdk-stacksets.StackSetStack"></a>
+
+- *Implements:* constructs.IConstruct, constructs.IDependable, aws-cdk-lib.ITaggable
 
 A StackSet stack, which is similar to a normal CloudFormation stack with some differences.
 
@@ -1961,6 +1963,8 @@ or the delegated administrator account
 
 
 ### StackSetStackSynthesizer <a name="StackSetStackSynthesizer" id="cdk-stacksets.StackSetStackSynthesizer"></a>
+
+- *Implements:* aws-cdk-lib.IStackSynthesizer
 
 Deployment environment for an AWS StackSet stack.
 
