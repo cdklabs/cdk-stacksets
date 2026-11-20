@@ -12,6 +12,7 @@
 /.github/workflows/pull-request-lint.yml linguist-generated
 /.github/workflows/release.yml linguist-generated
 /.github/workflows/retry-automerge.yml linguist-generated
+/.github/workflows/self-mutation.yml linguist-generated
 /.github/workflows/upgrade-cdklabs-projen-project-types-main.yml linguist-generated
 /.github/workflows/upgrade-dev-deps-main.yml linguist-generated
 /.github/workflows/upgrade-main.yml linguist-generated
@@ -24,5 +25,7 @@
 /API.md linguist-generated
 /LICENSE linguist-generated
 /package.json linguist-generated
-/tsconfig.dev.json linguist-generated linguist-language=JSON-with-Comments
+/projenrc/tsconfig.json linguist-generated linguist-language=JSON-with-Comments
+/test/tsconfig.json linguist-generated linguist-language=JSON-with-Comments
+/tsconfig.json linguist-generated
 /yarn.lock linguist-generated
