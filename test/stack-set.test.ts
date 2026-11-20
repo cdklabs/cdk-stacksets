@@ -583,6 +583,37 @@ test('test lambda assets with two asset buckets', () => {
   Template.fromStack(stack).resourceCountIs('Custom::CDKBucketDeployment', 2);
 });
 
+test('stackset depends on the asset bucket deployment when defined inside a construct', () => {
+  const app = new App({
+    context: {
+      [cxapi.ASSET_RESOURCE_METADATA_ENABLED_CONTEXT]: true,
+    },
+  });
+  const stack = new Stack(app);
+  const construct = new Construct(stack, 'Construct');
+  const lambdaStack = new LambdaStackSet(construct, 'LambdaStack', {
+    assetBuckets: [s3.Bucket.fromBucketName(construct, 'AssetBucket', 'integ-assets')],
+    assetBucketPrefix: 'prefix',
+  });
+
+  new StackSet(construct, 'StackSet', {
+    target: StackSetTarget.fromAccounts({
+      regions: ['us-east-1'],
+      accounts: ['11111111111'],
+    }),
+    template: StackSetTemplate.fromStackSetStack(lambdaStack),
+    capabilities: [Capability.IAM, Capability.NAMED_IAM],
+  });
+
+  const template = Template.fromStack(stack);
+  const deployments = Object.keys(template.findResources('Custom::CDKBucketDeployment'));
+  expect(deployments).toHaveLength(1);
+
+  const stackSets = Object.values(template.findResources('AWS::CloudFormation::StackSet'));
+  expect(stackSets).toHaveLength(1);
+  expect(stackSets[0].DependsOn).toEqual(expect.arrayContaining(deployments));
+});
+
 test('stackset without target', () => {
   const app = new App();
   const stack = new Stack(app);
