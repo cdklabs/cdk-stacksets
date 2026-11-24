@@ -731,8 +731,10 @@ export class StackSet extends Resource implements IStackSet {
     }
 
     // the file asset bucket deployment needs to complete before the stackset can deploy
+    // the deployments are created directly in the stack, so look them up there
+    // rather than in `scope`, which can be a construct nested inside the stack
     for (const fileAssetResourceName of fileAssetResourceNames) {
-      const fileAssetResource = scope.node.tryFindChild(fileAssetResourceName);
+      const fileAssetResource = Stack.of(this).node.tryFindChild(fileAssetResourceName);
       fileAssetResource && stackSet.node.addDependency(fileAssetResource);
     }
   }
